@@ -1,0 +1,176 @@
+
+Enum TicketType {
+  "SEATED"
+  "STANDING"
+}
+
+ENUM TicketStatus {
+  "ACTIVE"
+  "USED"
+  "CANCELLED"
+}
+
+ENUM SeatStatus {
+  "AVAILABLE"
+  "BOOKED"
+  "PENDING"
+}
+
+ENUM EventStatus {
+  "PENDING"
+  "APPROVED"
+  "REJECTED"
+  "IN_PROGRESS"
+  "CANCELLED"
+  "ENDED"
+}
+
+enum OrderStatus {
+  "PENDING"
+  "PAID"
+  "CANCELLED"
+}
+
+Enum UserRole {
+  "ADMIN"
+  "ORGANIZER"
+  "CUSTOMER"
+}
+
+enum PaymentStatus {
+  "SUCCESS"
+  "FAILED"
+  "PENDING"
+}
+
+Table users {
+  id uuid [primary key]
+  name varchar
+  phone_number varchar [unique]
+  email varchar [unique]
+  password varchar
+  role UserRole [default: "CUSTOMER"]
+  is_profile_complete bool
+  is_deleted bool
+  google_id varchar
+  created_at timestamp
+}
+
+Table admins {
+  user_id uuid [primary key]
+}
+Ref: users.id - admins.user_id
+
+Table organizers {
+  user_id uuid [primary key]
+  tax_code varchar
+  website_url varchar
+  business_license_url varchar
+  is_approved bool
+  reject_reason varchar
+}
+Ref: "organizers"."user_id" - "users"."id"
+
+Table customers  {
+  user_id uuid [primary key]
+}
+Ref: customers.user_id - users.id
+
+Table venues {
+  venue_id uuid [primary key]
+  venue_name varchar [not null]
+  address varchar
+  capacity integer
+  map_image_url varchar
+}
+
+Table events {
+  event_id uuid [primary key]
+  event_name varchar
+  organizer_id uuid [not null]
+  venue_id uuid [not null]
+  genre varchar
+  event_img_url varchar
+  approved_by uuid
+  description varchar
+  status EventStatus [default: "PENDING"]
+  time_to_start datetime
+  time_to_release datetime
+  duration varchar
+  seat_layout_map JSON
+  reject_reason varchar
+}
+Ref: events.organizer_id ?> organizers.user_id
+Ref: events.venue_id ?> venues.venue_id
+Ref: events.approved_by >? admins.user_id
+
+Table ticket_classes {
+  ticket_class_id uuid [primary key]
+  event_id uuid [not null]
+  class_name varchar
+  price double [not null]
+  quota integer
+  type TicketType [default: "SEATED"]
+  color varchar
+  description varchar
+}
+Ref: ticket_classes.event_id ?> events.event_id
+
+Table seats {
+  seat_id uuid [primary key]
+  event_id uuid [not null]
+  ticket_class_id uuid [not null]
+  order_id uuid
+  name varchar
+  status SeatStatus [default: "AVAILABLE"]
+  hold_expired_at datetime
+}
+Ref: seats.event_id ?> events.event_id
+Ref: seats.ticket_class_id ?> ticket_classes.ticket_class_id
+ref: seats.order_id ?>? orders.order_id
+
+
+Table orders {
+  order_id uuid [primary key]
+  customer_id uuid [not null]
+  total_amount double [not null]
+  num_ticket integer
+  status OrderStatus [default: "PENDING"]
+  expired_at datetime
+  customer_email varchar
+  customer_name varchar
+  customer_phone varchar
+}
+Ref: orders.customer_id ?> customers.user_id
+
+Table payments {
+  payment_id uuid [primary key]
+  order_id uuid [not null]
+  amount double
+  method varchar
+  transaction_code varchar
+  status PaymentStatus [default: "PENDING"]
+}
+Ref: payments.order_id ?> orders.order_id
+
+Table tickets {
+  ticket_id uuid [primary key]
+  order_id uuid [not null]
+  seat_id uuid
+  ticket_class_id uuid [not null]
+  qr_dynamic_token varchar [unique]
+  status TicketStatus [default: "ACTIVE"]
+}
+Ref: tickets.ticket_class_id > ticket_classes.ticket_class_id
+Ref: tickets.order_id ?> orders.order_id
+Ref: tickets.seat_id >? seats.seat_id
+
+Table refresh_tokens {
+  id uuid [primary key]
+  token varchar [not null]
+  user_id uuid [not null]
+  expiry_date datetime
+  revoked bool [default: false]
+  created_at datetime
+}
+Ref: refresh_tokens.user_id ?> users.id

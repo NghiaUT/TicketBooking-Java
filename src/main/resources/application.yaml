@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: ticket-booking
+  datasource:
+    url: jdbc:postgresql://ep-little-tree-az2vvuru-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require&pgBouncer=True
+    username: neondb_owner
+    password: npg_fdTtIB8bWx6o
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+app:
+  jwt:
+    secret: "PHUNG_THANH_DO"
+    access-token-expiration-ms: 900000
+    refresh-token-expiration-ms: 604800000
