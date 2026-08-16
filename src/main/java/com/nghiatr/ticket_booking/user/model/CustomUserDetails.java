@@ -1,4 +1,4 @@
-package com.nghiatr.ticket_booking.user;
+package com.nghiatr.ticket_booking.user.model;
 
 import org.jspecify.annotations.NullMarked;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,7 +19,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     @NullMarked
     public String getUsername() {
-        return user.getName();
+        return user.getEmail();
     }
 
     @Override
@@ -35,6 +35,11 @@ public class CustomUserDetails implements UserDetails {
                         "ROLE_" + user.getRole().name()
                 )
         );
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return !this.user.isDeleted();
     }
 
     public User getUser() {

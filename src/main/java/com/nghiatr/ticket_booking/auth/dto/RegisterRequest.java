@@ -1,7 +1,9 @@
 package com.nghiatr.ticket_booking.auth.dto;
 
+import com.nghiatr.ticket_booking.user.model.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,5 +27,10 @@ public class RegisterRequest {
     @Size(min = 8, message = "Password must be at least 8 characters")
     private String password;
 
-    private String fullName;
+    @NotBlank(message = "Confirmed Password cannot be empty")
+    @Size(min = 8, message = "Confirmed Password must be at least 8 characters")
+    private String confirmedPassword;
+
+    @NotNull(message = "Role cannot be empty")
+    private UserRole role;
 }

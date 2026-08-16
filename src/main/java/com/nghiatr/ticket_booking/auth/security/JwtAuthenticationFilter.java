@@ -1,7 +1,8 @@
 package com.nghiatr.ticket_booking.auth.security;
 
-import com.nghiatr.ticket_booking.user.CustomUserDetails;
-import com.nghiatr.ticket_booking.user.CustomUserDetailsService;
+import com.nghiatr.ticket_booking.share.utils.ResponseUtil;
+import com.nghiatr.ticket_booking.user.model.CustomUserDetails;
+import com.nghiatr.ticket_booking.user.service.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,12 +21,30 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private final String[] UNSECURED_URLS = {
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/refresh-token",
+            "/error"
+    };
 
     private static final String AUTH_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final JWTService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
+
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+        String path = request.getServletPath();
+        for (String url : UNSECURED_URLS) {
+            if(path.startsWith(url)) {
+                return true; // Bỏ qua JWT Filter cho API này.
+            }
+        }
+
+        return false;
+    }
 
     @Override
     protected void doFilterInternal(
@@ -42,24 +61,48 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(BEARER_PREFIX.length());
-        final String userId = jwtService.extractUserId(jwt);
+        try {
+            final String userEmail = jwtService.extractEmail(jwt);
 
-        if(userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Perform create the UserDetails and push to context
+            if(userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                // Perform create the UserDetails and push to context for later use.
 
-            CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(userId);
+                CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(userEmail);
 
-            if(jwtService.isTokenValid(jwt, userDetails.getUser())) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                if(jwtService.isTokenValid(jwt, userDetails.getUser())) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+            filterChain.doFilter(request, response);
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            ResponseUtil.writeErrorResponse(
+                    request,
+                    response,
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Unauthorized",
+                    "JWT_EXPIRED",
+                    "Phiên đăng nhập đã hết hạn, vui lòng làm mới token."
+            );
+
+            return;
+        } catch (Exception e) {
+            ResponseUtil.writeErrorResponse(
+                    request,
+                    response,
+                    HttpServletResponse.SC_UNAUTHORIZED,
+                    "Unauthorized",
+                    "JWT_INVALID",
+                    "Token không hợp lệ."
+            );
+
+            return;
         }
 
-        filterChain.doFilter(request, response);
     }
 }

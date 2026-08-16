@@ -1,10 +1,12 @@
 spring:
+  config:
+    import: "optional:file:.env[.properties]"
   application:
     name: ticket-booking
   datasource:
-    url: jdbc:postgresql://ep-little-tree-az2vvuru-pooler.c-3.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require&pgBouncer=True
-    username: neondb_owner
-    password: npg_fdTtIB8bWx6o
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -12,6 +14,6 @@ spring:
     show-sql: true
 app:
   jwt:
-    secret: "PHUNG_THANH_DO"
-    access-token-expiration-ms: 900000
-    refresh-token-expiration-ms: 604800000
+    secret: ${JWT_SECRET}
+    access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRE_MS}
+    refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRE_MS}

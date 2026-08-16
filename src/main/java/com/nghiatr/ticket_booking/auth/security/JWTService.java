@@ -1,7 +1,7 @@
 package com.nghiatr.ticket_booking.auth.security;
 
-import com.nghiatr.ticket_booking.user.User;
-import com.nghiatr.ticket_booking.user.UserRole;
+import com.nghiatr.ticket_booking.user.model.User;
+import com.nghiatr.ticket_booking.user.model.UserRole;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.io.Decoders;
@@ -9,7 +9,6 @@ import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecureDigestAlgorithm;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -32,7 +31,12 @@ public class JWTService {
     private long refreshTokenExpirationMs;
 
     public String generateAccessToken(User user) {
-        return generateToken(new HashMap<>(), user, accessTokenExpirationMs);
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("email", user.getEmail());
+        extraClaims.put("role", user.getRole());
+        extraClaims.put("name", user.getName());
+
+        return generateToken(extraClaims, user, accessTokenExpirationMs);
     }
 
     public String generateRefreshToken(User user) {
