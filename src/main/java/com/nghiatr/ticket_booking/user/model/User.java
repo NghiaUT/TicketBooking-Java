@@ -16,6 +16,7 @@ import java.util.UUID;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(columnDefinition = "uuid")
     private UUID id;
 
     @Column(length = 300)
@@ -53,4 +54,13 @@ public class User {
     public boolean isAdmin() {
         return this.role == UserRole.ADMIN;
     }
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private Admin admin;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private Organizer organizer;
+
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
+    private Customer customer;
 }

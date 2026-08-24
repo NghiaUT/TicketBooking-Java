@@ -1,8 +1,9 @@
 package com.nghiatr.ticket_booking.auth.security;
 
-import com.nghiatr.ticket_booking.share.utils.ResponseUtil;
+import com.nghiatr.ticket_booking.shared.utils.ResponseUtil;
 import com.nghiatr.ticket_booking.user.model.CustomUserDetails;
 import com.nghiatr.ticket_booking.user.service.CustomUserDetailsService;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -79,7 +80,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-            filterChain.doFilter(request, response);
         } catch (io.jsonwebtoken.ExpiredJwtException e) {
             ResponseUtil.writeErrorResponse(
                     request,
@@ -91,18 +91,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             );
 
             return;
-        } catch (Exception e) {
+        } catch (JwtException e) {
             ResponseUtil.writeErrorResponse(
                     request,
                     response,
                     HttpServletResponse.SC_UNAUTHORIZED,
                     "Unauthorized",
                     "JWT_INVALID",
-                    "Token không hợp lệ."
+                    "Token không hợp lệ"
             );
 
             return;
         }
+
+        filterChain.doFilter(request, response);
 
     }
 }

@@ -104,6 +104,7 @@ CREATE TABLE events (
                         description      VARCHAR,
                         status           event_status DEFAULT 'PENDING',
                         time_to_start    TIMESTAMP,
+                        date_to_start    TIMESTAMP,
                         time_to_release  TIMESTAMP,
                         duration         VARCHAR,
                         seat_layout_map  JSON,

@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 /* Hold the current user information perform the specific request.*/
 public class CustomUserDetails implements UserDetails {
@@ -40,6 +41,10 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public boolean isEnabled() {
         return !this.user.isDeleted();
+    }
+
+    public UUID getUserId() {
+        return this.user.getId();
     }
 
     public User getUser() {

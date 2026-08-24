@@ -6,8 +6,12 @@ import com.nghiatr.ticket_booking.auth.dto.RegisterRequest;
 import com.nghiatr.ticket_booking.auth.entity.RefreshToken;
 import com.nghiatr.ticket_booking.auth.repository.RefreshTokenRepository;
 import com.nghiatr.ticket_booking.auth.security.JWTService;
+import com.nghiatr.ticket_booking.shared.dto.ErrorCode;
+import com.nghiatr.ticket_booking.shared.exception.AppException;
 import com.nghiatr.ticket_booking.user.model.User;
+import com.nghiatr.ticket_booking.user.model.UserRole;
 import com.nghiatr.ticket_booking.user.repository.UserRepository;
+import com.nghiatr.ticket_booking.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -27,6 +31,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JWTService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final UserService userService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -34,17 +39,31 @@ public class AuthService {
             throw new IllegalArgumentException("Email đã được sử dụng");
         }
 
-        User user = User.builder()
-                .name(request.getName())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
-                .build();
+        UserRole role = request.getRole();
 
-        userRepository.save(user);
+        if(role == UserRole.ADMIN) throw new IllegalArgumentException("Không được đăng ký bằng admin");
+
+        User user = userService.createUser(
+                request.getName(),
+                request.getEmail(),
+                request.getPassword(),
+                passwordEncoder,
+                role
+        );
+
+        switch (role) {
+            case CUSTOMER :
+                userService.createCustomer(user);
+                break;
+            case ORGANIZER:
+                userService.createOrganizer(user);
+                break;
+        }
 
         return buildAuthResponse(user);
     }
+
+
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
@@ -101,6 +120,7 @@ public class AuthService {
         return AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshTokenValue)
+                .ExpiresIn(jwtService.getAccessTokenExpirationMs())
                 .build();
     }
 }
