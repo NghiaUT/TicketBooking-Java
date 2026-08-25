@@ -2,7 +2,7 @@ package com.nghiatr.ticket_booking.event.dto;
 
 import com.nghiatr.ticket_booking.event.entity.Event;
 import com.nghiatr.ticket_booking.event.entity.EventStatus;
-import com.nghiatr.ticket_booking.event.entity.seat_layout.SeatLayout;
+import com.nghiatr.ticket_booking.seat.entity.SeatLayout;
 import lombok.Builder;
 
 import java.time.LocalDateTime;

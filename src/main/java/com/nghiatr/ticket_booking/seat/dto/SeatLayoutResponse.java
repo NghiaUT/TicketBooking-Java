@@ -1,4 +1,4 @@
-package com.nghiatr.ticket_booking.event.dto.layout_request;
+package com.nghiatr.ticket_booking.seat.dto;
 
 public record SeatLayoutResponse(
         int seatsCreated

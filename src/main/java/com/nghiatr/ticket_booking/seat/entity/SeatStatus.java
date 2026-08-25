@@ -1,4 +1,4 @@
-package com.nghiatr.ticket_booking.event.entity;
+package com.nghiatr.ticket_booking.seat.entity;
 
 public enum SeatStatus {
     AVAILABLE,

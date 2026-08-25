@@ -1,5 +1,6 @@
-package com.nghiatr.ticket_booking.event.entity;
+package com.nghiatr.ticket_booking.venue.entity;
 
+import com.nghiatr.ticket_booking.seat.entity.SeatStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

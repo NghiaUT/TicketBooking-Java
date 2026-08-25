@@ -22,11 +22,13 @@ import java.io.IOException;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-    private final String[] UNSECURED_URLS = {
+    public final String[] UNSECURED_URLS = {
             "/api/v1/auth/login",
             "/api/v1/auth/register",
             "/api/v1/auth/refresh-token",
-            "/error"
+            "/error",
+            "/api/v1/venues",
+            "/api/v1/events"
     };
 
     private static final String AUTH_HEADER = "Authorization";
@@ -39,7 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
         for (String url : UNSECURED_URLS) {
-            if(path.startsWith(url)) {
+            if(path.equals(url)) {
+                // Để tránh lỗi bỏ qua tất cả các API /events/my-event...
                 return true; // Bỏ qua JWT Filter cho API này.
             }
         }

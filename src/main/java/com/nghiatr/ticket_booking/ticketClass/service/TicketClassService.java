@@ -1,8 +1,7 @@
 package com.nghiatr.ticket_booking.ticketClass.service;
 
 import com.nghiatr.ticket_booking.event.entity.Event;
-import com.nghiatr.ticket_booking.event.exception.EventErrorCode;
-import com.nghiatr.ticket_booking.event.repository.EventRepository;
+import com.nghiatr.ticket_booking.event.service.EventService;
 import com.nghiatr.ticket_booking.shared.exception.AppException;
 import com.nghiatr.ticket_booking.ticketClass.dto.TicketClassItem;
 import com.nghiatr.ticket_booking.ticketClass.dto.TicketClassResponse;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TicketClassService {
     private final TicketClassRepository ticketClassRepository;
-    private final EventRepository eventRepository;
+    private final EventService eventService;
 
     private boolean isUUID(String id) {
         return id != null && id.matches(
@@ -31,10 +30,22 @@ public class TicketClassService {
         );
     }
 
+    public TicketClass getById(UUID ticketClassId) {
+        return ticketClassRepository.findById(ticketClassId)
+                .orElseThrow(() -> new AppException(TicketClassErrorCode.TICKET_CLASS_NOT_FOUND));
+    }
+
+    public List<TicketClass> getAllByEvent(Event event) {
+        return ticketClassRepository.findAllByEventId(event);
+    }
+
+    public List<TicketClass> saveAll(List<TicketClass> ticketClasses) {
+        return ticketClassRepository.saveAll(ticketClasses);
+    }
+
     public int createTicketClasses(UUID eventId, List<TicketClassItem> ticketClassItemData) {
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new AppException(EventErrorCode.EVENT_NOT_FOUND));
+        Event event = eventService.getEvent(eventId);
 
         List<TicketClass> ticketClasses = ticketClassItemData.stream()
                 .map(ticket -> TicketClass.builder()
@@ -55,8 +66,7 @@ public class TicketClassService {
     public int editTicketClasses(UUID eventId, List<TicketClassItem> ticketClassItemData) {
         // 1. Xóa những ticket class bị xóa trên frontend:
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new AppException(EventErrorCode.EVENT_NOT_FOUND));
+        Event event = eventService.getEvent(eventId);
 
         List<TicketClass> existingTickets =
                 ticketClassRepository.findAllByEventId(event);
@@ -109,8 +119,7 @@ public class TicketClassService {
 
     public List<TicketClassResponse> getByEventId(UUID eventId) {
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new AppException(EventErrorCode.EVENT_NOT_FOUND));
+        Event event = eventService.getEvent(eventId);
 
         List<TicketClass> ticketClasses = ticketClassRepository.findAllByEventId(event);
 

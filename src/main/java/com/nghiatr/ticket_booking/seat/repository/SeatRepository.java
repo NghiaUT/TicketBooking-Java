@@ -1,7 +1,7 @@
-package com.nghiatr.ticket_booking.event.repository;
+package com.nghiatr.ticket_booking.seat.repository;
 
 import com.nghiatr.ticket_booking.event.entity.Event;
-import com.nghiatr.ticket_booking.event.entity.Seat;
+import com.nghiatr.ticket_booking.seat.entity.Seat;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 

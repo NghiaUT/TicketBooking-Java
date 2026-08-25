@@ -30,7 +30,9 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Tắt CSRF
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/error").permitAll()// Mở cổng không sử dụng xác thực cho các API này
+                        .requestMatchers(
+                                jwtAuthFilter.UNSECURED_URLS
+                        ).permitAll()// Mở cổng không sử dụng xác thực cho các API này
                         .anyRequest().authenticated()                // Các API còn lại của hệ thống
                 )
                 .sessionManagement(sess -> sess

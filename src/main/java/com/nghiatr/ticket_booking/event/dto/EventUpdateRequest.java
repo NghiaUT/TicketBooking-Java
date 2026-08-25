@@ -1,6 +1,7 @@
 package com.nghiatr.ticket_booking.event.dto;
 
 import com.nghiatr.ticket_booking.event.entity.EventStatus;
+import com.nghiatr.ticket_booking.ticketClass.dto.TicketClassItem;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,7 +14,7 @@ public record EventUpdateRequest(
         LocalDateTime dateToStart,
         LocalDateTime timeToStart,
         UUID venueId,
-        List<TicketClassUpdateRequest> ticketClasses
+        List<TicketClassItem> ticketClasses
 ) {
     public boolean onlyContainsStatus() {
         return status != null

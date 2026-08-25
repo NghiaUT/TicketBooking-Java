@@ -1,5 +1,6 @@
-package com.nghiatr.ticket_booking.event.entity;
+package com.nghiatr.ticket_booking.seat.entity;
 
+import com.nghiatr.ticket_booking.event.entity.Event;
 import com.nghiatr.ticket_booking.ticketClass.entity.TicketClass;
 import jakarta.persistence.*;
 import lombok.*;

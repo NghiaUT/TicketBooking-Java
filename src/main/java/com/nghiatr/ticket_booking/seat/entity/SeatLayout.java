@@ -1,4 +1,4 @@
-package com.nghiatr.ticket_booking.event.entity.seat_layout;
+package com.nghiatr.ticket_booking.seat.entity;
 
 import lombok.*;
 

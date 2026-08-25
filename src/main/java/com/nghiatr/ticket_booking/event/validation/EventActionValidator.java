@@ -1,12 +1,12 @@
 package com.nghiatr.ticket_booking.event.validation;
 
 import com.nghiatr.ticket_booking.event.dto.EventUpdateRequest;
-import com.nghiatr.ticket_booking.event.dto.TicketClassUpdateRequest;
 import com.nghiatr.ticket_booking.event.entity.Event;
 import com.nghiatr.ticket_booking.event.entity.EventActionType;
 import com.nghiatr.ticket_booking.event.entity.EventStatus;
 import com.nghiatr.ticket_booking.event.exception.EventErrorCode;
 import com.nghiatr.ticket_booking.shared.exception.AppException;
+import com.nghiatr.ticket_booking.ticketClass.dto.TicketClassItem;
 import com.nghiatr.ticket_booking.ticketClass.entity.TicketClass;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -100,17 +100,17 @@ public class EventActionValidator {
             return;
         }
 
-        for (TicketClassUpdateRequest newClass : request.ticketClasses()) {
+        for (TicketClassItem newClass : request.ticketClasses()) {
 
             ticketClasses
                     .stream()
                     .filter(oldClass ->
-                            oldClass.getTicketClassId()
-                                    .equals(newClass.ticketClassId()))
+                            oldClass.getTicketClassId().toString()
+                                    .equals(newClass.getId()))
                     .findFirst()
                     .ifPresent(oldClass -> {
 
-                        if (newClass.quota() < oldClass.getQuota()) {
+                        if (newClass.getQuota() < oldClass.getQuota()) {
                             throw new AppException(
                                     EventErrorCode.QUOTA_CANNOT_DECREASE
                             );

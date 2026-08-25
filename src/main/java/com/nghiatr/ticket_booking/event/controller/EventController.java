@@ -1,11 +1,11 @@
 package com.nghiatr.ticket_booking.event.controller;
 
 import com.nghiatr.ticket_booking.event.dto.*;
-import com.nghiatr.ticket_booking.event.dto.layout_request.CreateLayoutRequest;
-import com.nghiatr.ticket_booking.event.dto.layout_request.SeatLayoutResponse;
+import com.nghiatr.ticket_booking.orchestration.EventFacade;
+import com.nghiatr.ticket_booking.seat.dto.CreateLayoutRequest;
+import com.nghiatr.ticket_booking.seat.dto.SeatLayoutResponse;
 import com.nghiatr.ticket_booking.event.service.EventService;
 import com.nghiatr.ticket_booking.shared.dto.ApiResponse;
-import com.nghiatr.ticket_booking.ticketClass.dto.TicketClassItem;
 import com.nghiatr.ticket_booking.ticketClass.dto.TicketClassRequest;
 import com.nghiatr.ticket_booking.ticketClass.dto.TicketClassResponse;
 import com.nghiatr.ticket_booking.ticketClass.service.TicketClassService;
@@ -25,6 +25,7 @@ import java.util.UUID;
 public class EventController {
     private final EventService eventService;
     private final TicketClassService ticketClassService;
+    private final EventFacade eventFacade;
 
     // Tìm kiếm tất cả sự kiện (API public dành cho khách hàng).
     @GetMapping
@@ -38,12 +39,6 @@ public class EventController {
             @PathVariable("id") UUID eventId
     ) {
         return ResponseEntity.ok(ApiResponse.ok(eventService.findEventById(eventId), "Lấy thông tin chi tiết sự kiện thành công"));
-    }
-
-    // Public.
-    @GetMapping("/venues")
-    public ResponseEntity<ApiResponse<VenueResponse>> findAllVenuesPublic() {
-        return ResponseEntity.ok(ApiResponse.ok(eventService.findAllVenues(), "Lấy danh sách địa điểm thành công"));
     }
 
     // ======= ORGANIZER
@@ -131,7 +126,7 @@ public class EventController {
     ) {
         return ResponseEntity.ok(
                 ApiResponse.ok(
-                        eventService.createLayout(
+                        eventFacade.createLayout(
                                 id,
                                 request
                         ),
@@ -148,7 +143,7 @@ public class EventController {
     ) {
         return ResponseEntity.ok(
                 ApiResponse.ok(
-                        eventService.update(
+                        eventFacade.update(
                                 id,
                                 request
                         ),

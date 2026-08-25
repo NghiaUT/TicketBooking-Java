@@ -1,6 +1,6 @@
-package com.nghiatr.ticket_booking.event.dto.layout_request;
+package com.nghiatr.ticket_booking.seat.dto;
 
-import com.nghiatr.ticket_booking.event.entity.seat_layout.SeatLayout;
+import com.nghiatr.ticket_booking.seat.entity.SeatLayout;
 
 import java.util.List;
 

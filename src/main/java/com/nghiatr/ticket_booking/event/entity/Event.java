@@ -1,8 +1,9 @@
 package com.nghiatr.ticket_booking.event.entity;
 
-import com.nghiatr.ticket_booking.event.entity.seat_layout.SeatLayout;
+import com.nghiatr.ticket_booking.seat.entity.SeatLayout;
 import com.nghiatr.ticket_booking.user.model.Admin;
 import com.nghiatr.ticket_booking.user.model.Organizer;
+import com.nghiatr.ticket_booking.venue.entity.Venue;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
