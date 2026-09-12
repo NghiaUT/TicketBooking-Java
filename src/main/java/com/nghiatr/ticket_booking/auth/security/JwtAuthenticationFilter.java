@@ -28,7 +28,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/v1/auth/refresh-token",
             "/error",
             "/api/v1/venues",
-            "/api/v1/events"
+            "/api/v1/events",
+            "/actuator/**"
     };
 
     private static final String AUTH_HEADER = "Authorization";

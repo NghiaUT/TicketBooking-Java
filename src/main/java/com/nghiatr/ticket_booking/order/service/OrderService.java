@@ -13,6 +13,7 @@ import com.nghiatr.ticket_booking.seat.repository.SeatRepository;
 import com.nghiatr.ticket_booking.shared.exception.AppException;
 import com.nghiatr.ticket_booking.user.model.Customer;
 import com.nghiatr.ticket_booking.user.repository.CustomerRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +31,8 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final CustomerRepository customerRepository;
     private final SeatRepository seatRepository;
+
+    private final MeterRegistry meterRegistry;
 
     // 1. Find all order by userId;
     public OrderResponse findAll(UUID customerId) {
