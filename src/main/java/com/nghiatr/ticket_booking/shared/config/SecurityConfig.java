@@ -33,6 +33,9 @@ public class SecurityConfig {
                         .requestMatchers(
                                 jwtAuthFilter.UNSECURED_URLS
                         ).permitAll()// Mở cổng không sử dụng xác thực cho các API này
+
+                        .requestMatchers("/api/v1/orders/**").hasRole("CUSTOMER")
+
                         .anyRequest().authenticated()                // Các API còn lại của hệ thống
                 )
                 .sessionManagement(sess -> sess

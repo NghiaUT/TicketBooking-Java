@@ -15,7 +15,7 @@ public record TicketClassResponse(
         String color,
         String description
 ) {
-    public TicketClassResponse toResponse(TicketClass ticketClass) {
+    public static TicketClassResponse toResponse(TicketClass ticketClass) {
         return new TicketClassResponse(
                 ticketClass.getTicketClassId(),
                 ticketClass.getEventId().getEventId(),

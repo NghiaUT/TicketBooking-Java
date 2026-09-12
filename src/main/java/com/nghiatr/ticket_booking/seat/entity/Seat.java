@@ -1,6 +1,7 @@
 package com.nghiatr.ticket_booking.seat.entity;
 
 import com.nghiatr.ticket_booking.event.entity.Event;
+import com.nghiatr.ticket_booking.order.entity.Order;
 import com.nghiatr.ticket_booking.ticketClass.entity.TicketClass;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,6 +28,13 @@ public class Seat {
             referencedColumnName = "event_id"
     )
     private Event eventId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(
+            name = "order_id",
+            referencedColumnName = "order_id"
+    )
+    private Order order;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
