@@ -14,14 +14,14 @@ import java.io.IOException;
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override
-    public void commence(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, AuthenticationException authException) throws IOException {
+    public void commence(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull AuthenticationException authException) throws IOException {
         ResponseUtil.writeErrorResponse(
                 request,
                 response,
                 HttpServletResponse.SC_UNAUTHORIZED,
                 "Unauthorized",
                 "UNAUTHORIZED",
-                "Sai tài khoản hoặc mật khẩu!"
+                "Yêu cầu xác thực. Vui lòng cung cấp access token hợp lệ."
         );
     }
 }

@@ -13,7 +13,10 @@ import com.nghiatr.ticket_booking.seat.repository.SeatRepository;
 import com.nghiatr.ticket_booking.shared.exception.AppException;
 import com.nghiatr.ticket_booking.user.model.Customer;
 import com.nghiatr.ticket_booking.user.repository.CustomerRepository;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +37,21 @@ public class OrderService {
 
     private final MeterRegistry meterRegistry;
 
+    // For Counting
+    private Counter orderCreated;
+    private Counter unavailableSeat;
+
+    @PostConstruct
+    private void initMetrics() {
+        this.orderCreated = Counter.builder("ticket_booking_orders_created")
+                .description("Number of successfully created orders")
+                .register(meterRegistry);
+
+        this.unavailableSeat = Counter.builder("ticket_booking_unavailable_seats")
+                .description("Number of orders rejected because seats are unavailable")
+                .register(meterRegistry);
+    }
+
     // 1. Find all order by userId;
     public OrderResponse findAll(UUID customerId) {
         Customer customer = customerRepository.findById(customerId)
@@ -53,7 +71,6 @@ public class OrderService {
     }
 
     // 3. Create Order + Holding seat (PENDING) -> Create Payment.
-    // Refactor later, using some technique.
     @Transactional
     public CreateOrderResponse create(UUID customerId, List<UUID> seatIds) {
 
@@ -67,19 +84,36 @@ public class OrderService {
         // 1. Get Seats Information
         List<Seat> seats = seatRepository.findBySeatIdIn(seatIds);
 
-        // 2. All seats must be AVAILABLE.
+        // 2. Validate all requested seats exist in the DB
         if(seats.size() != seatIds.size()) {
             throw new AppException(OrderErrorCode.UNEXISTED_SEAT);
         }
 
-        // 4. Compute the total amount:
+        // 3. Fast-fail: kiểm tra tình trạng ghế TRƯỚC khi tạo Order.
+        //    Bước này KHÔNG có lock nên không chống được race condition,
+        //    nhưng giúp fail nhanh với các ghế rõ ràng đã không khả dụng
+        //    mà không cần tạo thêm một Order entity thừa.
+        List<Seat> notAvailableSeats = seats.stream()
+                .filter(seat -> seat.getStatus() != SeatStatus.AVAILABLE)
+                .toList();
+        if (!notAvailableSeats.isEmpty()) {
+            String seatNames = notAvailableSeats.stream()
+                    .map(Seat::getName)
+                    .collect(Collectors.joining(", "));
+            unavailableSeat.increment();
+            throw new AppException(OrderErrorCode.UNAVAILABLE_SEATS,
+                    "Các ghế " + seatNames + " đã không còn khả dụng.");
+        }
+
+        // 4. Compute the total amount
         double totalAmount = seats.stream()
                 .reduce(0.0, (total, ele) -> total + ele.getTicketClassId().getPrice(), Double::sum);
 
         // 5. Calculate Hold Expiration
         LocalDateTime holdExpiredAt = LocalDateTime.now().plusMinutes(HOLD_DURATION_MINUTES);
 
-        // 6. create Order:
+        // 6. Create Order — nằm trong cùng @Transactional, nếu bước 7 thất bại
+        //    và throw exception, toàn bộ transaction sẽ rollback (kể cả Order này).
         Order order = Order.builder()
                 .customer(customer)
                 .customerEmail(customer.getUser().getEmail())
@@ -91,45 +125,46 @@ public class OrderService {
                 .expiredAt(holdExpiredAt)
                 .build();
 
-        orderRepository.save(
-                order
-        );
+        orderRepository.save(order);
 
-        // 3. Handle Race condition at here. Will changing for later.
-        /*
-        Các giải pháp:
-            1. Persimisstic Locking: Đảm bảo tuyệt đối và dễ Implelement: SQL FOR UPDATE.
-            -> Throughput thấp, block các request, dễ gây deadlock nếu không lock
-                theo thứ tự cố định.
-            2. Optimisstic Locking - With version: (Sử dụng annotation @Version trong entity)
-                Không blocking, throghput cao khi có ít conflict.
-            -> Cần retry logic, không nên khi có nhiều conflict đồng thời.
-            3. Atomic Update với điều kiện (Compare-and-Swap)
-                Đơn giản và hiệu quả, không cần Lock ở tầng JPA, giữ được tính atomic ở tầng DB
-            -> Không biết là ghế nào bị lấy mất để trả về tầng Service.
-
-        * */
-        List<Seat> unavailableSeats = seats.stream()
-                .filter(seat -> seat.getStatus() != SeatStatus.AVAILABLE)
-                .toList();
-
-        if(!unavailableSeats.isEmpty()) {
-            String seatNames = unavailableSeats.stream()
-                    .map(Seat::getName)
-                    .collect(Collectors.joining(","));
-
-            throw new AppException((OrderErrorCode.UNAVAILABLE_SEATS));
+        // 7. Atomic CAS update — lớp bảo vệ thực sự chống race condition.
+        //    DB chỉ update những ghế CÒN status = AVAILABLE tại thời điểm execute,
+        //    đảm bảo tính atomic ngay cả khi nhiều request tranh nhau cùng lúc.
+        Timer.Sample sample = Timer.start(meterRegistry);
+        int updatedCount;
+        try {
+            updatedCount = orderRepository.updateSeatStatusIfAvailable(
+                    SeatStatus.PENDING, order, holdExpiredAt, seatIds
+            );
+        } finally {
+            sample.stop(
+                    Timer.builder("ticket_booking_seat_reservation")
+                            .description("Time spent reserving seats")
+                            .publishPercentiles(0.5, 0.95, 0.99)
+                            .register(meterRegistry)
+            );
         }
 
-        // 7. Update seats - Reserve seats
-        seatRepository.updateSeatStatus(SeatStatus.PENDING, holdExpiredAt, order, seatIds);
+        // 8. Nếu không lock đủ số ghế yêu cầu → có race condition xảy ra.
+        //    Transaction này sẽ rollback toàn bộ (Order + seat update).
+        if(updatedCount != seatIds.size()) {
+            // Tìm đúng ghế bị người khác giữ: loại trừ ghế mình đã lock thành công
+            // trong cùng transaction (để tránh báo lỗi sai tên ghế).
+            List<Seat> takenSeats = seatRepository.findUnavailableSeatsExcludingOrder(
+                    seatIds, SeatStatus.AVAILABLE, order.getOrderId()
+            );
+            String takenSeatNames = takenSeats.stream()
+                    .map(Seat::getName)
+                    .collect(Collectors.joining(", "));
+            unavailableSeat.increment();
+            throw new AppException(OrderErrorCode.UNAVAILABLE_SEATS,
+                    "Các ghế " + takenSeatNames + " đã không còn khả dụng.");
+        }
+
         List<Seat> newSeats = seatRepository.findBySeatIdIn(seatIds);
 
-        // 8. Create Payments
-        // Implements later.
-
-        // 9. Return DTO:
+        // 9. Return DTO — tất cả ghế đã được reserve thành công
+        orderCreated.increment();
         return CreateOrderResponse.from(order, newSeats, holdExpiredAt);
     }
-
 }

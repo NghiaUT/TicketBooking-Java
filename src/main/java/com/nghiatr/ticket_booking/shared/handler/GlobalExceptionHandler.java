@@ -57,6 +57,7 @@ public class GlobalExceptionHandler {
     ) throws IOException {
 
         ErrorCode errorCode = ex.getErrorCode();
+        String message = ex.getMessage();
 
         ResponseUtil.writeErrorResponse(
                 request,
@@ -64,7 +65,7 @@ public class GlobalExceptionHandler {
                 errorCode.getStatus().value(),
                 errorCode.getStatus().toString(),
                 errorCode.getCode(),
-                errorCode.getMessage()
+                message
         );
     }
 

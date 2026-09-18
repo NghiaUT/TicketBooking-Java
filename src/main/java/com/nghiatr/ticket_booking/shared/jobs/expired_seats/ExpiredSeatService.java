@@ -4,7 +4,7 @@ import com.nghiatr.ticket_booking.order.entity.OrderStatus;
 import com.nghiatr.ticket_booking.order.repository.OrderRepository;
 import com.nghiatr.ticket_booking.seat.entity.SeatStatus;
 import com.nghiatr.ticket_booking.seat.repository.SeatRepository;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
