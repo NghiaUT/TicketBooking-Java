@@ -29,7 +29,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/error",
             "/api/v1/venues",
             "/api/v1/events",
-            "/actuator/**"
+            "/actuator/**",
+            "/ws/**"
     };
 
     private static final String AUTH_HEADER = "Authorization";

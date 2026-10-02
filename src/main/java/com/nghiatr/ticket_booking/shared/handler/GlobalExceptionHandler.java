@@ -69,6 +69,23 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(Exception.class)
+    public void handleGeneralException(
+            Exception ex,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
+
+        ResponseUtil.writeErrorResponse(
+                request,
+                response,
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.toString(),
+                "INTERNAL_SERVER_ERROR_001",
+                ex.getMessage()
+        );
+    }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public void handleDataIntegrityViolation(
             DataIntegrityViolationException ex,
@@ -80,9 +97,26 @@ public class GlobalExceptionHandler {
                 request,
                 response,
                 HttpStatus.CONFLICT.value(),
-                "Conflict",
+                HttpStatus.CONFLICT.toString(),
                 "DATA_INTEGRITY_VIOLATION",
                 "Dữ liệu đã tồn tại hoặc vi phạm ràng buộc của hệ thống."
+        );
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public void handleMaxUploadSizeExceeded(
+            org.springframework.web.multipart.MaxUploadSizeExceededException ex,
+            HttpServletRequest request,
+            HttpServletResponse response
+    ) throws IOException {
+
+        ResponseUtil.writeErrorResponse(
+                request,
+                response,
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.toString(),
+                "FILE_003",
+                "Kích thước file vượt quá dung lượng tối đa cho phép của hệ thống."
         );
     }
 }

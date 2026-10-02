@@ -16,6 +16,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nghiatr.ticket_booking.shared.storage.FileStorageService;
+import com.nghiatr.ticket_booking.shared.storage.FileStorageValidator;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -27,6 +33,8 @@ public class EventFacade {
     private final SeatService seatService;
     private final EventService eventService;
     private final EventActionValidator eventActionValidator;
+    private final FileStorageService fileStorageService;
+    private final FileStorageValidator fileStorageValidator;
 
     @Transactional
     public SeatLayoutResponse createLayout(
@@ -52,24 +60,76 @@ public class EventFacade {
             UUID eventId,
             EventUpdateRequest updateData
     ) {
+        return update(eventId, updateData, null);
+    }
+
+    @Transactional
+    public EventItemResponse update(
+            UUID eventId,
+            EventUpdateRequest updateData,
+            MultipartFile image
+    ) {
         Event event = eventService.getOrganizerEvent(eventId);
         List<TicketClass> ticketClasses = ticketClassService.getAllByEvent(event);
 
-        eventActionValidator.validate(
-                event,
-                ticketClasses,
-                updateData,
-                EventActionType.UPDATE
-        );
-
-        if(updateData.ticketClasses() != null
-                && !updateData.ticketClasses().isEmpty()) {
-            // Sử dụng service của ticketClass để chỉnh sửa thông tin.
-            ticketClassService.editTicketClasses(eventId, updateData.ticketClasses());
+        if (updateData != null) {
+            eventActionValidator.validate(
+                    event,
+                    ticketClasses,
+                    updateData,
+                    EventActionType.UPDATE
+            );
         }
 
-        eventService.updateEventFields(event, updateData);
+        boolean hasNewImage = image != null && !image.isEmpty();
+        String oldImageUrl = event.getEventImgUrl();
+        String newImageUrl = null;
 
-        return EventItemResponse.from(event);
+        if (hasNewImage) {
+            fileStorageValidator.validateImageFile(image);
+            newImageUrl = fileStorageService.uploadFile(image, "events");
+            event.setEventImgUrl(newImageUrl);
+
+            final String finalNewImageUrl = newImageUrl;
+            final String finalOldImageUrl = oldImageUrl;
+
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
+                            fileStorageService.deleteFile(finalNewImageUrl);
+                        }
+                    }
+
+                    @Override
+                    public void afterCommit() {
+                        if (finalOldImageUrl != null && !finalOldImageUrl.isBlank()) {
+                            fileStorageService.deleteFile(finalOldImageUrl);
+                        }
+                    }
+                });
+            }
+        }
+
+        try {
+            if (updateData != null) {
+                if (updateData.ticketClasses() != null
+                        && !updateData.ticketClasses().isEmpty()) {
+                    // Sử dụng service của ticketClass để chỉnh sửa thông tin.
+                    ticketClassService.editTicketClasses(eventId, updateData.ticketClasses());
+                }
+
+                eventService.updateEventFields(event, updateData);
+            }
+
+            eventService.saveEvent(event);
+            return EventItemResponse.from(event);
+        } catch (Exception ex) {
+            if (hasNewImage && newImageUrl != null) {
+                fileStorageService.deleteFile(newImageUrl);
+            }
+            throw ex;
+        }
     }
 }

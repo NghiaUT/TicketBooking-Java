@@ -56,8 +56,24 @@ public class EventController {
         );
     }
 
-    // [Bước 1] Tạo thông tin cơ bản.
-    @PostMapping("/my-event")
+    // [Bước 1] Tạo thông tin cơ bản kèm upload ảnh bìa (multipart/form-data)
+    @PostMapping(value = "/my-event", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<EventItemResponse>> createBasicInfoEventMultipart(
+            @Validated @RequestPart("event") CreateEventRequest eventData,
+            @RequestPart(value = "image", required = false) org.springframework.web.multipart.MultipartFile image,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        UUID organizerId = userDetails.getUserId();
+        return ResponseEntity.ok(
+                ApiResponse.ok(
+                        eventService.createBasicInfo(organizerId, eventData, image),
+                        "Tạo thông tin cơ bản sự kiện thành công."
+                )
+        );
+    }
+
+    // [Bước 1] Tạo thông tin cơ bản (application/json)
+    @PostMapping(value = "/my-event", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<EventItemResponse>> createBasicInfoEvent(
             @Validated @RequestBody CreateEventRequest eventData,
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -65,7 +81,7 @@ public class EventController {
         UUID organizerId = userDetails.getUserId();
         return ResponseEntity.ok(
                 ApiResponse.ok(
-                        eventService.createBasicInfo(organizerId, eventData),
+                        eventService.createBasicInfo(organizerId, eventData, null),
                         "Tạo thông tin cơ bản sự kiện thành công."
                 )
         );
@@ -135,8 +151,27 @@ public class EventController {
         );
     }
 
-    // Chỉnh sửa các thông tin cho sự kiện.
-    @PutMapping("/my-event/{id}")
+    // Chỉnh sửa các thông tin cho sự kiện kèm upload ảnh bìa (multipart/form-data)
+    @PutMapping(value = "/my-event/{id}", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ApiResponse<EventItemResponse>> updateEventInfoMultipart(
+            @PathVariable UUID id,
+            @RequestPart(value = "event", required = false) EventUpdateRequest request,
+            @RequestPart(value = "image", required = false) org.springframework.web.multipart.MultipartFile image
+    ) {
+        return ResponseEntity.ok(
+                ApiResponse.ok(
+                        eventFacade.update(
+                                id,
+                                request,
+                                image
+                        ),
+                        "Cập nhật thông tin sự kiện thành công!"
+                )
+        );
+    }
+
+    // Chỉnh sửa các thông tin cho sự kiện (application/json)
+    @PutMapping(value = "/my-event/{id}", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<EventItemResponse>> updateEventInfo(
             @PathVariable UUID id,
             @RequestBody EventUpdateRequest request
@@ -145,7 +180,8 @@ public class EventController {
                 ApiResponse.ok(
                         eventFacade.update(
                                 id,
-                                request
+                                request,
+                                null
                         ),
                 "Cập nhật thông tin sự kiện thành công!"
                 )

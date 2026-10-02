@@ -17,6 +17,13 @@ import com.nghiatr.ticket_booking.venue.service.VenueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.nghiatr.ticket_booking.shared.storage.FileStorageService;
+import com.nghiatr.ticket_booking.shared.storage.FileStorageValidator;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +36,8 @@ public class EventService {
     private final OrganizerRepository organizerRepository;
     private final VenueService venueService;
     private final SecurityUtils securityUtils;
+    private final FileStorageService fileStorageService;
+    private final FileStorageValidator fileStorageValidator;
 
     //Helper để lấy các event thuộc về organizer.
     public Event getOrganizerEvent(UUID eventId) {
@@ -80,7 +89,13 @@ public class EventService {
                 .build();
     }
 
+    @Transactional
     public EventItemResponse createBasicInfo(UUID organizerId, CreateEventRequest eventData) {
+        return createBasicInfo(organizerId, eventData, null);
+    }
+
+    @Transactional
+    public EventItemResponse createBasicInfo(UUID organizerId, CreateEventRequest eventData, MultipartFile image) {
         LocalDateTime timeToStart = eventData.getTimeToStart();
         LocalDateTime timeToRelease = eventData.getTimeToRelease();
 
@@ -96,22 +111,54 @@ public class EventService {
         Organizer organizer = organizerRepository.findByUserId(organizerId)
                 .orElseThrow(() -> new AppException(EventErrorCode.ORGANIZER_NOT_FOUND));
 
-        Event newEvent = Event.builder()
-                .eventName(eventData.getEventName())
-                .venue(venue)
-                .organizer(organizer)
-                .eventImgUrl(eventData.getEventImgUrl())
-                .dateToStart(eventData.getDateToStart())
-                .timeToRelease(eventData.getTimeToRelease())
-                .timeToStart(eventData.getTimeToStart())
-                .description(eventData.getDescription())
-                .genre(eventData.getGenre())
-                .duration(eventData.getDuration())
-                .status(EventStatus.PENDING)
-                .build();
-        eventRepository.save(newEvent);
+        // Validate image trước nếu client có đính kèm file
+        boolean hasImage = image != null && !image.isEmpty();
+        if (hasImage) {
+            fileStorageValidator.validateImageFile(image);
+        }
 
-        return EventItemResponse.from(newEvent);
+        String imageUrl = eventData.getEventImgUrl();
+        if (hasImage) {
+            // Upload ảnh lên S3
+            imageUrl = fileStorageService.uploadFile(image, "events");
+
+            // Đăng ký rollback compensation: Nếu transaction rollback, xóa ảnh trên S3
+            final String uploadedImageUrl = imageUrl;
+            if (TransactionSynchronizationManager.isActualTransactionActive()) {
+                TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                    @Override
+                    public void afterCompletion(int status) {
+                        if (status == TransactionSynchronization.STATUS_ROLLED_BACK) {
+                            fileStorageService.deleteFile(uploadedImageUrl);
+                        }
+                    }
+                });
+            }
+        }
+
+        try {
+            Event newEvent = Event.builder()
+                    .eventName(eventData.getEventName())
+                    .venue(venue)
+                    .organizer(organizer)
+                    .eventImgUrl(imageUrl)
+                    .dateToStart(eventData.getDateToStart())
+                    .timeToRelease(eventData.getTimeToRelease())
+                    .timeToStart(eventData.getTimeToStart())
+                    .description(eventData.getDescription())
+                    .genre(eventData.getGenre())
+                    .duration(eventData.getDuration())
+                    .status(EventStatus.PENDING)
+                    .build();
+            eventRepository.save(newEvent);
+
+            return EventItemResponse.from(newEvent);
+        } catch (Exception ex) {
+            if (hasImage && imageUrl != null) {
+                fileStorageService.deleteFile(imageUrl);
+            }
+            throw ex;
+        }
     }
 
     // ======== Cập nhật các field khác của Event.

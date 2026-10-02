@@ -18,11 +18,25 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+      enabled: true
 app:
   jwt:
     secret: ${JWT_SECRET}
     access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRE_MS}
     refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRE_MS}
+  storage:
+    max-file-size-bytes: 5242880
+aws:
+  region: ${AWS_REGION:ap-southeast-1}
+  s3:
+    bucket-name: ${AWS_S3_BUCKET_NAME:ticket-booking-events}
+    access-key-id: ${AWS_ACCESS_KEY_ID:}
+    secret-access-key: ${AWS_SECRET_ACCESS_KEY:}
+    endpoint: ${AWS_S3_ENDPOINT:}
 management:
   endpoints:
     web:
