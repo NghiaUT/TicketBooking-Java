@@ -4,9 +4,9 @@ import com.nghiatr.ticket_booking.auth.dto.AuthResponse;
 import com.nghiatr.ticket_booking.auth.dto.LoginRequest;
 import com.nghiatr.ticket_booking.auth.dto.RegisterRequest;
 import com.nghiatr.ticket_booking.auth.entity.RefreshToken;
+import com.nghiatr.ticket_booking.auth.exception.AuthErrorCode;
 import com.nghiatr.ticket_booking.auth.repository.RefreshTokenRepository;
 import com.nghiatr.ticket_booking.auth.security.JWTService;
-import com.nghiatr.ticket_booking.shared.dto.ErrorCode;
 import com.nghiatr.ticket_booking.shared.exception.AppException;
 import com.nghiatr.ticket_booking.user.model.User;
 import com.nghiatr.ticket_booking.user.model.UserRole;
@@ -15,6 +15,7 @@ import com.nghiatr.ticket_booking.user.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,12 +37,12 @@ public class AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Email đã được sử dụng");
+            throw new AppException(AuthErrorCode.EMAIL_ALREADY_EXISTS);
         }
 
         UserRole role = request.getRole();
 
-        if(role == UserRole.ADMIN) throw new IllegalArgumentException("Không được đăng ký bằng admin");
+        if(role == UserRole.ADMIN) throw new AppException(AuthErrorCode.ADMIN_REGISTER_FORBIDDEN);
 
         User user = userService.createUser(
                 request.getName(),
@@ -67,12 +68,16 @@ public class AuthService {
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+        } catch (BadCredentialsException e) {
+            throw new AppException(AuthErrorCode.BAD_CREDENTIALS);
+        }
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new AppException(AuthErrorCode.USER_NOT_FOUND));
 
         // Deactivate tất cả refreshToken của user này còn hạn.
         refreshTokenRepository.revokeAllByUserId(user.getId());
@@ -83,14 +88,14 @@ public class AuthService {
     @Transactional
     public AuthResponse refreshToken(String refreshTokenValue) {
         RefreshToken storedToken = refreshTokenRepository.findByToken(refreshTokenValue)
-                .orElseThrow(() -> new IllegalArgumentException("Refresh token không hợp lệ"));
+                .orElseThrow(() -> new AppException(AuthErrorCode.INVALID_REFRESH_TOKEN));
 
         if (storedToken.isRevoked() || storedToken.getExpiryDate().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Refresh token đã hết hạn hoặc bị thu hồi");
+            throw new AppException(AuthErrorCode.INVALID_REFRESH_TOKEN);
         }
 
         User user = userRepository.findById(storedToken.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Tài khoản không tồn tại"));
+                .orElseThrow(() -> new AppException(AuthErrorCode.USER_NOT_FOUND));
 
         String newAccessToken = jwtService.generateAccessToken(user);
 
