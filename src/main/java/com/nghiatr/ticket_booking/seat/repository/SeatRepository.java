@@ -5,6 +5,8 @@ import com.nghiatr.ticket_booking.order.entity.Order;
 import com.nghiatr.ticket_booking.seat.entity.Seat;
 import com.nghiatr.ticket_booking.seat.entity.SeatStatus;
 import com.nghiatr.ticket_booking.shared.jobs.expired_seats.ExpiredSeatProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -53,5 +55,9 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
             @Param("orderId") UUID orderId
     );
 
-    List<ExpiredSeatProjection> findByStatusAndHoldExpiredAtBefore(SeatStatus seatStatus, LocalDateTime now);
+    /**
+     * Tìm các ghế đã bị hết hạn, dùng cho cronjob.
+     * */
+
+    Page<ExpiredSeatProjection> findByStatusAndHoldExpiredAtBefore(SeatStatus seatStatus, LocalDateTime now, Pageable pageable);
 }

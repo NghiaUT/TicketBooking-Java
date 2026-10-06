@@ -13,7 +13,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         // 1. Prefix cho các topic mà client sẽ SUBSCRIBE để nhận broadcast
-        // vd: /topic/events/{eventId}
+        // vd: /topic/events/{eventId}/seats
         registry.enableSimpleBroker("/topic", "/queue");
 
         registry.setApplicationDestinationPrefixes("/app");

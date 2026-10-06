@@ -10,6 +10,7 @@ import com.nghiatr.ticket_booking.order.repository.OrderRepository;
 import com.nghiatr.ticket_booking.seat.entity.Seat;
 import com.nghiatr.ticket_booking.seat.entity.SeatStatus;
 import com.nghiatr.ticket_booking.seat.repository.SeatRepository;
+import com.nghiatr.ticket_booking.seat.service.SeatWebSocketPublisher;
 import com.nghiatr.ticket_booking.shared.exception.AppException;
 import com.nghiatr.ticket_booking.user.model.Customer;
 import com.nghiatr.ticket_booking.user.repository.CustomerRepository;
@@ -36,6 +37,7 @@ public class OrderService {
     private final SeatRepository seatRepository;
 
     private final MeterRegistry meterRegistry;
+    private final SeatWebSocketPublisher seatWebSocketPublisher;
 
     // For Counting
     private Counter orderCreated;
@@ -162,9 +164,14 @@ public class OrderService {
         }
 
         List<Seat> newSeats = seatRepository.findBySeatIdIn(seatIds);
+        // 9. Broadcast event lock ghế.
+        seatWebSocketPublisher.publishSeatLocked(
+                seats.getFirst().getEventId().getEventId(), seatIds, holdExpiredAt
+        );
 
-        // 9. Return DTO — tất cả ghế đã được reserve thành công
+        // 10. Return DTO — tất cả ghế đã được reserve thành công
         orderCreated.increment();
+
         return CreateOrderResponse.from(order, newSeats, holdExpiredAt);
     }
 }
