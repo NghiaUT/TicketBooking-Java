@@ -16,7 +16,8 @@ spring:
       max-lifetime: 1800000
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+      # update nếu muốn dev nhanh local, validate để kiểm tra schema trước khi chạy ứng dụng
     show-sql: true
   servlet:
     multipart:
@@ -30,6 +31,7 @@ app:
     refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRE_MS}
   storage:
     max-file-size-bytes: 5242880
+  env: ${ENV}
 aws:
   region: ${AWS_REGION:ap-southeast-1}
   s3:

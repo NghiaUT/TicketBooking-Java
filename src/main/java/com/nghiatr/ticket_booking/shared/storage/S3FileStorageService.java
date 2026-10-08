@@ -34,13 +34,19 @@ public class S3FileStorageService implements FileStorageService {
     @Value("${aws.s3.endpoint:}")
     private String endpoint;
 
+    @Value("${app.env}")
+    private String env;
+
     @Override
     public String uploadFile(MultipartFile file, String folder) {
         fileStorageValidator.validateImageFile(file);
 
         String extension = fileStorageValidator.extractExtension(file.getOriginalFilename());
+        String uploadEnv =  "production".equalsIgnoreCase(env)
+                ? "production/"
+                : "development/";
         String folderPrefix = StringUtils.hasText(folder) ? folder.trim().replaceAll("^/+|/+$", "") + "/" : "";
-        String key = folderPrefix + UUID.randomUUID() + "." + extension;
+        String key = uploadEnv + folderPrefix + UUID.randomUUID() + "." + extension;
 
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
