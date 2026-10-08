@@ -37,6 +37,14 @@ public class S3FileStorageService implements FileStorageService {
     @Value("${app.env}")
     private String env;
 
+    /**
+     * Tải tệp tin lên AWS S3 và trả về URL truy cập công khai.
+     *
+     * @param file tệp tin cần tải lên
+     * @param folder thư mục tiền tố đích trên S3 (ví dụ "events")
+     * @return URL công khai của tệp sau khi tải lên
+     * @throws AppException nếu quá trình tải lên hoặc đọc tệp thất bại
+     */
     @Override
     public String uploadFile(MultipartFile file, String folder) {
         fileStorageValidator.validateImageFile(file);
@@ -75,6 +83,11 @@ public class S3FileStorageService implements FileStorageService {
         }
     }
 
+    /**
+     * Xóa tệp tin trên AWS S3 dựa theo URL hoặc object key.
+     *
+     * @param fileUrlOrKey URL hoặc object key cần xóa
+     */
     @Override
     public void deleteFile(String fileUrlOrKey) {
         if (!StringUtils.hasText(fileUrlOrKey)) {
@@ -99,6 +112,12 @@ public class S3FileStorageService implements FileStorageService {
         }
     }
 
+    /**
+     * Trích xuất object key trên S3 từ URL đầy đủ hoặc chuỗi key.
+     *
+     * @param fileUrlOrKey đường dẫn URL hoặc key của tệp
+     * @return object key tương ứng trên bucket S3
+     */
     public String extractKey(String fileUrlOrKey) {
         if (!fileUrlOrKey.startsWith("http://") && !fileUrlOrKey.startsWith("https://")) {
             return fileUrlOrKey;

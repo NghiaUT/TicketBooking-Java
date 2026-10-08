@@ -39,7 +39,13 @@ public class EventService {
     private final FileStorageService fileStorageService;
     private final FileStorageValidator fileStorageValidator;
 
-    //Helper để lấy các event thuộc về organizer.
+    /**
+     * Lấy thực thể sự kiện theo ID thuộc quyền sở hữu của ban tổ chức hiện tại.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @return thực thể Event tìm thấy
+     * @throws AppException nếu không tìm thấy sự kiện hoặc không thuộc quyền sở hữu
+     */
     public Event getOrganizerEvent(UUID eventId) {
         UUID organizerId = securityUtils.getCurrentUserId();
 
@@ -50,15 +56,33 @@ public class EventService {
                 );
     }
 
+    /**
+     * Tìm kiếm thực thể sự kiện theo mã định danh sự kiện.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @return thực thể Event tìm thấy
+     * @throws AppException nếu không tìm thấy sự kiện
+     */
     public Event getEvent(UUID eventId) {
         return eventRepository.findById(eventId)
                 .orElseThrow(() -> new AppException(EventErrorCode.EVENT_NOT_FOUND));
     }
 
+    /**
+     * Lưu hoặc cập nhật thực thể sự kiện vào cơ sở dữ liệu.
+     *
+     * @param event thực thể sự kiện cần lưu
+     * @return thực thể Event sau khi lưu
+     */
     public Event saveEvent(Event event) {
         return eventRepository.save(event);
     }
 
+    /**
+     * Lấy danh sách toàn bộ các sự kiện đang ở trạng thái đã duyệt (APPROVED).
+     *
+     * @return đối tượng EventResponse chứa danh sách sự kiện công khai
+     */
     public EventResponse findAllEvent() {
         List<EventItemResponse> events = eventRepository
                 .findAllByStatus(EventStatus.APPROVED)
@@ -71,6 +95,13 @@ public class EventService {
                 .build();
     }
 
+    /**
+     * Lấy thông tin chi tiết của sự kiện theo ID dưới dạng DTO.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @return đối tượng EventItemResponse chứa chi tiết sự kiện
+     * @throws AppException nếu sự kiện không tồn tại
+     */
     public EventItemResponse findEventById(UUID eventId) {
         return eventRepository.
                 findById(eventId)
@@ -78,22 +109,44 @@ public class EventService {
                 .orElseThrow(() -> new AppException(EventErrorCode.EVENT_NOT_FOUND));
     }
 
+    /**
+     * Lấy danh sách toàn bộ sự kiện do một ban tổ chức cụ thể tạo ra.
+     *
+     * @param organizerId định danh ban tổ chức
+     * @return đối tượng EventResponse chứa danh sách sự kiện của ban tổ chức
+     */
     public EventResponse findOrganizerEvent(UUID organizerId) {
         return EventResponse.builder()
                 .events(
-                        eventRepository.findAllByOrganizer_UserId(organizerId)
-                                .stream()
-                                .map(EventItemResponse::from)
-                                .toList()
+                eventRepository.findAllByOrganizer_UserId(organizerId)
+                        .stream()
+                        .map(EventItemResponse::from)
+                        .toList()
                 )
                 .build();
     }
 
+    /**
+     * Tạo mới thông tin cơ bản của sự kiện mà không kèm tệp ảnh tải lên.
+     *
+     * @param organizerId định danh ban tổ chức
+     * @param eventData dữ liệu thông tin cơ bản sự kiện
+     * @return đối tượng EventItemResponse chứa thông tin sự kiện vừa tạo
+     */
     @Transactional
     public EventItemResponse createBasicInfo(UUID organizerId, CreateEventRequest eventData) {
         return createBasicInfo(organizerId, eventData, null);
     }
 
+    /**
+     * Tạo mới thông tin cơ bản của sự kiện kèm xử lý lưu trữ tệp ảnh bìa.
+     *
+     * @param organizerId định danh ban tổ chức
+     * @param eventData dữ liệu thông tin cơ bản sự kiện
+     * @param image tệp ảnh bìa tải lên (tùy chọn)
+     * @return đối tượng EventItemResponse chứa thông tin sự kiện vừa tạo
+     * @throws AppException nếu thời gian tổ chức không hợp lệ hoặc không tìm thấy ban tổ chức/địa điểm
+     */
     @Transactional
     public EventItemResponse createBasicInfo(UUID organizerId, CreateEventRequest eventData, MultipartFile image) {
         LocalDateTime timeToStart = eventData.getTimeToStart();
@@ -162,6 +215,12 @@ public class EventService {
     }
 
     // ======== Cập nhật các field khác của Event.
+    /**
+     * Cập nhật các trường thông tin thay đổi vào thực thể sự kiện hiện có.
+     *
+     * @param event thực thể sự kiện cần cập nhật
+     * @param request dữ liệu cập nhật sự kiện
+     */
     public void updateEventFields(
             Event event,
             EventUpdateRequest request

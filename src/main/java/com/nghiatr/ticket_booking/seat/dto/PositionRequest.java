@@ -8,6 +8,11 @@ public record PositionRequest(
         int width,
         int height
 ) {
+    /**
+     * Chuyển đổi dữ liệu PositionRequest sang thực thể Position.
+     *
+     * @return đối tượng Position
+     */
     public Position toPosition() {
         return Position.builder()
                 .x(x)

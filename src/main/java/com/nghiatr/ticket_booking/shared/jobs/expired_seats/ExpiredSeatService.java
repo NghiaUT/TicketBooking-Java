@@ -32,6 +32,9 @@ public class ExpiredSeatService {
     private final SeatWebSocketPublisher seatWebSocketPublisher;
 //    private final PaymentRepository paymentRepository;
 
+    /**
+     * Quét và giải phóng các ghế đã hết hạn giữ chỗ (PENDING), hủy các đơn hàng tương ứng và phát sự kiện WebSocket.
+     */
     @Transactional
     public void releaseExpiredSeats() {
         LocalDateTime now = LocalDateTime.now();

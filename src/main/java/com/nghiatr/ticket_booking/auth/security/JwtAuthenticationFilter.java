@@ -44,6 +44,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
+    /**
+     * Xác định xem yêu cầu HTTP có được miễn trừ kiểm tra JWT hay không dựa trên danh sách URL công khai.
+     *
+     * @param request yêu cầu HTTP hiện tại
+     * @return true nếu yêu cầu khớp với danh sách URL không cần bảo vệ, ngược lại false
+     * @throws ServletException nếu xảy ra lỗi trong quá trình xử lý servlet
+     */
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
@@ -56,6 +63,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return false;
     }
 
+    /**
+     * Chặn và kiểm tra JWT từ header Authorization để xác thực người dùng và thiết lập SecurityContext.
+     *
+     * @param request yêu cầu HTTP đến
+     * @param response phản hồi HTTP gửi đi
+     * @param filterChain chuỗi bộ lọc bảo mật tiếp theo
+     * @throws ServletException nếu xảy ra lỗi trong chuỗi lọc
+     * @throws IOException nếu xảy ra lỗi vào ra dữ liệu
+     */
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,

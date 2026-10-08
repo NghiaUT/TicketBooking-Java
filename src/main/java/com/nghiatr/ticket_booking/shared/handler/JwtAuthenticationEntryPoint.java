@@ -13,6 +13,14 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
+    /**
+     * Xử lý trường hợp người dùng chưa xác thực hoặc token không hợp lệ (HTTP 401 Unauthorized).
+     *
+     * @param request yêu cầu HTTP hiện tại
+     * @param response phản hồi HTTP gửi đi
+     * @param authException ngoại lệ AuthenticationException xảy ra
+     * @throws IOException nếu xảy ra lỗi ghi dữ liệu phản hồi
+     */
     @Override
     public void commence(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull AuthenticationException authException) throws IOException {
         ResponseUtil.writeErrorResponse(

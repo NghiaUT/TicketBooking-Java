@@ -30,19 +30,45 @@ public class TicketClassService {
         );
     }
 
+    /**
+     * Tìm kiếm thực thể hạng vé theo mã định danh duy nhất.
+     *
+     * @param ticketClassId định danh duy nhất của hạng vé
+     * @return thực thể TicketClass tìm thấy
+     * @throws AppException nếu hạng vé không tồn tại
+     */
     public TicketClass getById(UUID ticketClassId) {
         return ticketClassRepository.findById(ticketClassId)
                 .orElseThrow(() -> new AppException(TicketClassErrorCode.TICKET_CLASS_NOT_FOUND));
     }
 
+    /**
+     * Lấy toàn bộ danh sách hạng vé thuộc về một sự kiện.
+     *
+     * @param event thực thể sự kiện cần lấy hạng vé
+     * @return danh sách các thực thể TicketClass của sự kiện
+     */
     public List<TicketClass> getAllByEvent(Event event) {
         return ticketClassRepository.findAllByEventId(event);
     }
 
+    /**
+     * Lưu danh sách các thực thể hạng vé vào cơ sở dữ liệu.
+     *
+     * @param ticketClasses danh sách các thực thể hạng vé cần lưu
+     * @return danh sách các thực thể TicketClass sau khi lưu
+     */
     public List<TicketClass> saveAll(List<TicketClass> ticketClasses) {
         return ticketClassRepository.saveAll(ticketClasses);
     }
 
+    /**
+     * Tạo mới danh sách các hạng vé cho một sự kiện cụ thể.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @param ticketClassItemData danh sách thông tin các hạng vé cần tạo
+     * @return số lượng hạng vé đã được lưu vào cơ sở dữ liệu
+     */
     public int createTicketClasses(UUID eventId, List<TicketClassItem> ticketClassItemData) {
 
         Event event = eventService.getEvent(eventId);
@@ -62,6 +88,14 @@ public class TicketClassService {
         return ticketClassRepository.saveAll(ticketClasses).size();
     }
 
+    /**
+     * Cập nhật danh sách hạng vé của sự kiện (thêm mới, cập nhật và xóa các hạng vé bị gỡ bỏ).
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @param ticketClassItemData danh sách thông tin hạng vé gửi lên từ client
+     * @return số lượng hạng vé hiện có của sự kiện sau khi cập nhật
+     * @throws AppException nếu không tìm thấy sự kiện hoặc hạng vé cần sửa
+     */
     @Transactional
     public int editTicketClasses(UUID eventId, List<TicketClassItem> ticketClassItemData) {
         // 1. Xóa những ticket class bị xóa trên frontend:
@@ -117,6 +151,12 @@ public class TicketClassService {
         return ticketClassRepository.saveAll(ticketClasses).size();
     }
 
+    /**
+     * Lấy danh sách hạng vé của một sự kiện theo ID sự kiện.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @return danh sách các đối tượng TicketClassResponse
+     */
     public List<TicketClassResponse> getByEventId(UUID eventId) {
 
         Event event = eventService.getEvent(eventId);

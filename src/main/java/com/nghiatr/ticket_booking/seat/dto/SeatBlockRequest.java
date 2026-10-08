@@ -13,6 +13,11 @@ public record SeatBlockRequest(
         List<DeletedSeatRequest> deletedSeats,
         PositionRequest position
 ) {
+    /**
+     * Chuyển đổi dữ liệu SeatBlockRequest sang thực thể SeatBlock.
+     *
+     * @return đối tượng SeatBlock
+     */
     public SeatBlock toSeatBlock() {
         return SeatBlock.builder()
                 .blockId(blockId)

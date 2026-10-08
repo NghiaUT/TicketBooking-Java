@@ -13,6 +13,14 @@ import java.io.IOException;
 @Component
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
+    /**
+     * Xử lý trường hợp người dùng bị từ chối truy cập do thiếu quyền hạn (HTTP 403 Forbidden).
+     *
+     * @param request yêu cầu HTTP hiện tại
+     * @param response phản hồi HTTP gửi đi
+     * @param accessDeniedException ngoại lệ AccessDeniedException xảy ra
+     * @throws IOException nếu xảy ra lỗi ghi dữ liệu phản hồi
+     */
     @Override
     public void handle(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
         ResponseUtil.writeErrorResponse(

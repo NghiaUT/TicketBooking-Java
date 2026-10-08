@@ -16,6 +16,11 @@ public record EventUpdateRequest(
         UUID venueId,
         List<TicketClassItem> ticketClasses
 ) {
+    /**
+     * Kiểm tra xem yêu cầu cập nhật có phải chỉ chứa duy nhất trường trạng thái (status) hay không.
+     *
+     * @return true nếu chỉ có trường status khác null và các trường khác đều null, ngược lại false
+     */
     public boolean onlyContainsStatus() {
         return status != null
                 && eventName == null

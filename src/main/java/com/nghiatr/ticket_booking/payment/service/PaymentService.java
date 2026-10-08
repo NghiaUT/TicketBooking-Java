@@ -32,7 +32,12 @@ public class PaymentService {
     private final PaymentStrategyFactory paymentStrategyFactory;
 
     /**
-     * Khởi tạo giao dịch thanh toán và sinh URL thanh toán qua Strategy tương ứng.
+     * Khởi tạo bản ghi giao dịch thanh toán và sinh URL thanh toán qua PaymentStrategy tương ứng.
+     *
+     * @param request thông tin yêu cầu tạo phiên thanh toán
+     * @param clientIp địa chỉ IP của client gửi yêu cầu
+     * @return đối tượng PaymentResponse chứa thông tin phiên giao dịch và đường dẫn thanh toán
+     * @throws AppException nếu đơn hàng không tồn tại, đã thanh toán, đã bị hủy hoặc hết hạn giữ vé
      */
     @Transactional
     public PaymentResponse initPayment(CreatePaymentRequest request, String clientIp) {
@@ -86,7 +91,11 @@ public class PaymentService {
     }
 
     /**
-     * Đánh dấu thanh toán thành công (Bảo đảm Idempotency: nếu đã SUCCESS thì trả về ngay).
+     * Đánh dấu giao dịch thanh toán thành công và cập nhật mã giao dịch từ cổng thanh toán đối tác (idempotent).
+     *
+     * @param transactionCode mã giao dịch nội bộ của hệ thống
+     * @param gatewayTransactionId mã giao dịch từ cổng thanh toán bên thứ ba
+     * @return thực thể Payment sau khi cập nhật
      */
     @Transactional
     public Payment markSuccess(String transactionCode, String gatewayTransactionId) {
@@ -103,7 +112,11 @@ public class PaymentService {
     }
 
     /**
-     * Đánh dấu thanh toán thất bại.
+     * Đánh dấu giao dịch thanh toán thất bại nếu chưa từng ở trạng thái thành công.
+     *
+     * @param transactionCode mã giao dịch nội bộ của hệ thống
+     * @param gatewayTransactionId mã giao dịch từ cổng thanh toán bên thứ ba
+     * @return thực thể Payment sau khi cập nhật
      */
     @Transactional
     public Payment markFailed(String transactionCode, String gatewayTransactionId) {
@@ -119,6 +132,13 @@ public class PaymentService {
         return paymentRepository.save(payment);
     }
 
+    /**
+     * Tìm kiếm thông tin thanh toán theo mã giao dịch nội bộ.
+     *
+     * @param transactionCode mã giao dịch nội bộ
+     * @return thực thể Payment tìm thấy
+     * @throws AppException nếu không tìm thấy giao dịch với mã tương ứng
+     */
     @Transactional(readOnly = true)
     public Payment getByTransactionCode(String transactionCode) {
         return paymentRepository.findByTransactionCode(transactionCode)

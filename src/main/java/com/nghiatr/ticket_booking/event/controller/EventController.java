@@ -27,13 +27,23 @@ public class EventController {
     private final TicketClassService ticketClassService;
     private final EventFacade eventFacade;
 
-    // Tìm kiếm tất cả sự kiện (API public dành cho khách hàng).
+    /**
+     * Lấy danh sách toàn bộ các sự kiện đã được phê duyệt công khai cho khách hàng.
+     *
+     * @return phản hồi HTTP chứa danh sách tóm tắt các sự kiện
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<EventResponse>> findAllEventPublic() {
         // Thêm các cơ chế filter sau.
         return ResponseEntity.ok(ApiResponse.ok(eventService.findAllEvent(), "Lấy danh sách sự kiện thành công"));
     }
 
+    /**
+     * Lấy thông tin chi tiết của một sự kiện theo mã định danh.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @return phản hồi HTTP chứa thông tin chi tiết sự kiện
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<EventItemResponse>> findEventById(
             @PathVariable("id") UUID eventId
@@ -42,6 +52,12 @@ public class EventController {
     }
 
     // ======= ORGANIZER
+    /**
+     * Lấy danh sách các sự kiện do ban tổ chức đang đăng nhập quản lý.
+     *
+     * @param userDetails thông tin người dùng ban tổ chức hiện tại
+     * @return phản hồi HTTP chứa danh sách sự kiện của ban tổ chức
+     */
     @GetMapping("/my-event")
     public ResponseEntity<ApiResponse<EventResponse>> findOrganizerEvents(
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -57,6 +73,14 @@ public class EventController {
     }
 
     // [Bước 1] Tạo thông tin cơ bản kèm upload ảnh bìa (multipart/form-data)
+    /**
+     * Tạo thông tin cơ bản cho sự kiện mới kèm tệp ảnh bìa (multipart/form-data).
+     *
+     * @param eventData dữ liệu thông tin cơ bản của sự kiện
+     * @param image tệp hình ảnh bìa của sự kiện (tùy chọn)
+     * @param userDetails thông tin ban tổ chức thực hiện tạo sự kiện
+     * @return phản hồi HTTP chứa thông tin sự kiện vừa tạo
+     */
     @PostMapping(value = "/my-event", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<EventItemResponse>> createBasicInfoEventMultipart(
             @Validated @RequestPart("event") CreateEventRequest eventData,
@@ -73,6 +97,13 @@ public class EventController {
     }
 
     // [Bước 1] Tạo thông tin cơ bản (application/json)
+    /**
+     * Tạo thông tin cơ bản cho sự kiện mới không kèm tệp ảnh tải lên (application/json).
+     *
+     * @param eventData dữ liệu thông tin cơ bản của sự kiện
+     * @param userDetails thông tin ban tổ chức thực hiện tạo sự kiện
+     * @return phản hồi HTTP chứa thông tin sự kiện vừa tạo
+     */
     @PostMapping(value = "/my-event", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<EventItemResponse>> createBasicInfoEvent(
             @Validated @RequestBody CreateEventRequest eventData,
@@ -88,6 +119,13 @@ public class EventController {
     }
 
     //[Bước 2] Tạo các hạng vé:
+    /**
+     * Tạo mới danh sách các hạng vé cho sự kiện.
+     *
+     * @param id định danh duy nhất của sự kiện
+     * @param ticketClassRequest danh sách các hạng vé cần tạo
+     * @return phản hồi HTTP chứa số lượng hạng vé đã tạo thành công
+     */
     @PostMapping("/my-event/{id}/ticket-classes")
     public ResponseEntity<ApiResponse<Integer>> createTicketClasses(
             @PathVariable UUID id,
@@ -104,6 +142,13 @@ public class EventController {
         );
     }
 
+    /**
+     * Chỉnh sửa danh sách các hạng vé của sự kiện.
+     *
+     * @param id định danh duy nhất của sự kiện
+     * @param ticketClassRequest thông tin các hạng vé cần cập nhật
+     * @return phản hồi HTTP chứa số lượng hạng vé đã chỉnh sửa thành công
+     */
     @PutMapping("/my-event/{id}/ticket-classes")
     public ResponseEntity<ApiResponse<Integer>> editTicketClasses(
             @PathVariable UUID id,
@@ -120,6 +165,12 @@ public class EventController {
         );
     }
 
+    /**
+     * Lấy danh sách tất cả các hạng vé của sự kiện.
+     *
+     * @param id định danh duy nhất của sự kiện
+     * @return phản hồi HTTP chứa danh sách hạng vé
+     */
     @GetMapping("/my-event/{id}/ticket-classes")
     public ResponseEntity<ApiResponse<List<TicketClassResponse>>> getTicketClassesByEvent(
             @PathVariable UUID id
@@ -135,6 +186,13 @@ public class EventController {
     }
 
     //[Bước 3] Tạo layout cho sự kiện
+    /**
+     * Khởi tạo sơ đồ vị trí ghế ngồi cho sự kiện.
+     *
+     * @param id định danh duy nhất của sự kiện
+     * @param request dữ liệu thiết lập sơ đồ ghế
+     * @return phản hồi HTTP chứa thông tin sơ đồ ghế đã tạo
+     */
     @PostMapping("/my-event/{id}/layout")
     public ResponseEntity<ApiResponse<SeatLayoutResponse>> createLayout(
             @PathVariable UUID id,
@@ -152,6 +210,14 @@ public class EventController {
     }
 
     // Chỉnh sửa các thông tin cho sự kiện kèm upload ảnh bìa (multipart/form-data)
+    /**
+     * Cập nhật thông tin sự kiện kèm tải lên ảnh bìa mới (multipart/form-data).
+     *
+     * @param id định danh duy nhất của sự kiện
+     * @param request dữ liệu các trường cần cập nhật
+     * @param image tệp ảnh bìa mới (tùy chọn)
+     * @return phản hồi HTTP chứa thông tin sự kiện sau khi cập nhật
+     */
     @PutMapping(value = "/my-event/{id}", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<EventItemResponse>> updateEventInfoMultipart(
             @PathVariable UUID id,
@@ -171,6 +237,13 @@ public class EventController {
     }
 
     // Chỉnh sửa các thông tin cho sự kiện (application/json)
+    /**
+     * Cập nhật thông tin sự kiện dưới dạng JSON (application/json).
+     *
+     * @param id định danh duy nhất của sự kiện
+     * @param request dữ liệu các trường cần cập nhật
+     * @return phản hồi HTTP chứa thông tin sự kiện sau khi cập nhật
+     */
     @PutMapping(value = "/my-event/{id}", consumes = org.springframework.http.MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ApiResponse<EventItemResponse>> updateEventInfo(
             @PathVariable UUID id,

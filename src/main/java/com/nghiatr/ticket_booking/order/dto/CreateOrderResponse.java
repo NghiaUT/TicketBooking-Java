@@ -13,6 +13,14 @@ public record CreateOrderResponse(
         List<SeatResponse> seats,
         LocalDateTime holdExpiredAt
 ) {
+    /**
+     * Tạo đối tượng CreateOrderResponse từ thực thể Order, danh sách ghế và thời điểm hết hạn giữ chỗ.
+     *
+     * @param order thực thể đơn hàng đã tạo
+     * @param seats danh sách thực thể ghế tương ứng với đơn hàng
+     * @param holdExpiredAt thời điểm hết hạn giữ chỗ ghế
+     * @return đối tượng CreateOrderResponse hoàn chỉnh
+     */
     public static CreateOrderResponse from(Order order, List<Seat> seats, LocalDateTime holdExpiredAt) {
         return new CreateOrderResponse(
                 OrderItemResponse.from(order),

@@ -8,6 +8,11 @@ public record CreateLayoutRequest(
         CanvasRequest canvas,
         List<SeatBlockRequest> seatLayout
 ) {
+    /**
+     * Chuyển đổi dữ liệu yêu cầu tạo sơ đồ ghế thành đối tượng thực thể SeatLayout.
+     *
+     * @return đối tượng thực thể SeatLayout
+     */
     public SeatLayout toSeatLayout() {
         return SeatLayout.builder()
                 .seatLayout(

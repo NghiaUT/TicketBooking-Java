@@ -24,7 +24,11 @@ public class PaymentController {
     private final PaymentFacade paymentFacade;
 
     /**
-     * Khởi tạo URL - phiên thanh toán cho đơn hàng.
+     * Khởi tạo phiên thanh toán cho đơn hàng và sinh URL thanh toán tương ứng.
+     *
+     * @param request thông tin yêu cầu thanh toán bao gồm ID đơn hàng, phương thức và URL quay về
+     * @param servletRequest yêu cầu HTTP từ phía client để trích xuất địa chỉ IP
+     * @return phản hồi HTTP chứa ApiResponse với PaymentResponse gồm thông tin thanh toán và URL
      */
     @PostMapping
     public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
@@ -37,9 +41,11 @@ public class PaymentController {
     }
 
     /**
-     * Nhận kết quả redirect từ trình duyệt sau khi người dùng hoàn tất thanh toán ở cổng thứ 3.
-     * Đây là endpoint nhận kết quả trả về cho browser.
-     * Endpoint này CHỈ đọc và hiển thị, không cập nhật trạng thái đơn hàng.
+     * Phân tích và hiển thị kết quả redirect từ trình duyệt sau khi người dùng hoàn tất thanh toán ở cổng thứ 3.
+     *
+     * @param method phương thức thanh toán đã sử dụng
+     * @param allParams tập các tham số query do cổng thanh toán gửi kèm trên URL
+     * @return phản hồi HTTP chứa ApiResponse với PaymentReturnResult
      */
     @GetMapping("/{method}/return")
     public ResponseEntity<ApiResponse<PaymentReturnResult>> handleBrowserReturn(

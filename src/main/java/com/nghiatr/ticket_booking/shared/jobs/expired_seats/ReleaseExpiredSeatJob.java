@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 public class ReleaseExpiredSeatJob {
     private final ExpiredSeatService expiredSeatService;
 
+    /**
+     * Tác vụ định kỳ theo lịch trình (cron mỗi 30 giây) tự động quét và giải phóng các ghế quá hạn.
+     */
     @Scheduled(cron = "*/30 * * * * *")
     public void startReleaseExpiredSeat() {
         System.out.println("[CronJob] Checking expired seats...");

@@ -13,11 +13,22 @@ import java.util.UUID;
 @Component
 public class MockPaymentStrategy implements PaymentStrategy {
 
+    /**
+     * Xác định phương thức thanh toán là giả lập (MOCK).
+     *
+     * @return phương thức thanh toán PaymentMethod.MOCK
+     */
     @Override
     public PaymentMethod getPaymentMethod() {
         return PaymentMethod.MOCK;
     }
 
+    /**
+     * Sinh URL giả lập giao diện thanh toán phục vụ môi trường phát triển và kiểm thử.
+     *
+     * @param command dữ liệu lệnh thanh toán
+     * @return kết quả khởi tạo chứa URL trang giả lập thanh toán
+     */
     @Override
     public PaymentInitResult initPayment(PaymentCommand command) {
         // Sinh link giả lập thanh toán cho môi trường Dev / Testing
@@ -36,6 +47,12 @@ public class MockPaymentStrategy implements PaymentStrategy {
                 .build();
     }
 
+    /**
+     * Xử lý callback IPN giả lập từ client hoặc bài kiểm thử.
+     *
+     * @param params tập các tham số giả lập callback
+     * @return kết quả phản hồi giao dịch giả lập
+     */
     @Override
     public PaymentCallbackResult handleIpnCallback(Map<String, String> params) {
         String transactionCode = params.get("transactionCode");
@@ -53,6 +70,12 @@ public class MockPaymentStrategy implements PaymentStrategy {
                 .build();
     }
 
+    /**
+     * Phân tích các tham số trả về sau khi người dùng bấm hoàn tất trên trang giả lập.
+     *
+     * @param params tập tham số redirect từ trang checkout giả lập
+     * @return kết quả phân tích hiển thị cho giao diện
+     */
     @Override
     public PaymentReturnResult parseReturnParams(Map<String, String> params) {
         String transactionCode = params.get("transactionCode");

@@ -21,6 +21,14 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     // Bắt lỗi Validation từ các DTO
+    /**
+     * Xử lý ngoại lệ vi phạm ràng buộc dữ liệu đầu vào (Validation) từ các DTO.
+     *
+     * @param ex ngoại lệ MethodArgumentNotValidException
+     * @param request yêu cầu HTTP hiện tại
+     * @param response phản hồi HTTP gửi đi
+     * @throws IOException nếu xảy ra lỗi ghi dữ liệu phản hồi
+     */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public void handleValidationExceptions(
@@ -49,6 +57,14 @@ public class GlobalExceptionHandler {
         );
     }
 
+    /**
+     * Xử lý ngoại lệ nghiệp vụ nội bộ AppException của hệ thống.
+     *
+     * @param ex ngoại lệ AppException
+     * @param request yêu cầu HTTP hiện tại
+     * @param response phản hồi HTTP gửi đi
+     * @throws IOException nếu xảy ra lỗi ghi dữ liệu phản hồi
+     */
     @ExceptionHandler(AppException.class)
     public void handleAppException(
             AppException ex,
@@ -69,6 +85,14 @@ public class GlobalExceptionHandler {
         );
     }
 
+    /**
+     * Xử lý các lỗi ngoại lệ chung chưa được định nghĩa trước.
+     *
+     * @param ex ngoại lệ Exception
+     * @param request yêu cầu HTTP hiện tại
+     * @param response phản hồi HTTP gửi đi
+     * @throws IOException nếu xảy ra lỗi ghi dữ liệu phản hồi
+     */
     @ExceptionHandler(Exception.class)
     public void handleGeneralException(
             Exception ex,
@@ -86,6 +110,14 @@ public class GlobalExceptionHandler {
         );
     }
 
+    /**
+     * Xử lý lỗi vi phạm ràng buộc toàn vẹn dữ liệu trong cơ sở dữ liệu.
+     *
+     * @param ex ngoại lệ DataIntegrityViolationException
+     * @param request yêu cầu HTTP hiện tại
+     * @param response phản hồi HTTP gửi đi
+     * @throws IOException nếu xảy ra lỗi ghi dữ liệu phản hồi
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public void handleDataIntegrityViolation(
             DataIntegrityViolationException ex,
@@ -103,6 +135,14 @@ public class GlobalExceptionHandler {
         );
     }
 
+    /**
+     * Xử lý lỗi khi dung lượng tệp tin tải lên vượt quá giới hạn cấu hình của hệ thống.
+     *
+     * @param ex ngoại lệ MaxUploadSizeExceededException
+     * @param request yêu cầu HTTP hiện tại
+     * @param response phản hồi HTTP gửi đi
+     * @throws IOException nếu xảy ra lỗi ghi dữ liệu phản hồi
+     */
     @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
     public void handleMaxUploadSizeExceeded(
             org.springframework.web.multipart.MaxUploadSizeExceededException ex,

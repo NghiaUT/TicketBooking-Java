@@ -16,6 +16,11 @@ public class VenueController {
     private final VenueService venueService;
 
     // Public.
+    /**
+     * Lấy danh sách tất cả các địa điểm tổ chức sự kiện công khai trong hệ thống.
+     *
+     * @return phản hồi HTTP chứa ApiResponse với VenueResponse gồm danh sách địa điểm
+     */
     @GetMapping
     public ResponseEntity<ApiResponse<VenueResponse>> findAllVenuesPublic() {
         return ResponseEntity.ok(

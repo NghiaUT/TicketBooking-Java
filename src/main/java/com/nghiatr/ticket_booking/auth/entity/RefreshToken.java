@@ -34,6 +34,9 @@ public class RefreshToken {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    /**
+     * Khởi tạo các giá trị mặc định cho token trước khi lưu vào cơ sở dữ liệu.
+     */
     @PrePersist
     protected void onCreate() {
         this.createdAt = Instant.now();

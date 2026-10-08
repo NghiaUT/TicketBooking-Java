@@ -17,14 +17,29 @@ import java.util.List;
 import java.util.UUID;
 
 public interface SeatRepository extends JpaRepository<Seat, UUID> {
+    /**
+     * Xóa toàn bộ các ghế thuộc về sự kiện chỉ định.
+     *
+     * @param event thực thể sự kiện cần xóa ghế
+     */
     void deleteAllByEventId(Event event);
+
+    /**
+     * Tìm danh sách các ghế dựa trên danh sách ID ghế chỉ định.
+     *
+     * @param seatIds danh sách ID các ghế cần tìm
+     * @return danh sách các thực thể Seat tìm thấy
+     */
     List<Seat> findBySeatIdIn(List<UUID> seatIds);
 
     /**
-     * Release expired held seats back to AVAILABLE.
-     * Điều kiện "s.status = 'PENDING'" là safety net: ngăn release nhầm ghế đã chuyển
-     * sang BOOKED bởi một transaction khác trong khoảng thời gian giữa lần đọc (find)
-     * và lần ghi (update) của CronJob.
+     * Cập nhật trạng thái và thời gian giữ chỗ của các ghế đang ở trạng thái PENDING.
+     *
+     * @param status trạng thái mới của ghế
+     * @param holdExpiredAt thời điểm hết hạn giữ chỗ mới
+     * @param order đơn hàng giữ ghế
+     * @param seatIds danh sách ID các ghế cần cập nhật
+     * @return số lượng ghế được cập nhật trạng thái thành công
      */
     @Modifying(clearAutomatically = true)
     @Query("""
@@ -39,9 +54,13 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
                          @Param("seatIds") List<UUID> seatIds);
 
     /**
-     * Tìm các ghế KHÔNG còn AVAILABLE và KHÔNG thuộc order đang xử lý.
-     * Dùng để báo lỗi chính xác sau khi CAS update thất bại một phần:
-     * phân biệt ghế mình đã lock thành công (của mình) với ghế bị người khác giữ.
+     * Tìm các ghế không còn AVAILABLE và không thuộc đơn hàng đang xử lý.
+     * Dùng để xác định chính xác các ghế đã bị người dùng khác giữ chỗ khi thao tác CAS thất bại.
+     *
+     * @param seatIds danh sách ID ghế kiểm tra
+     * @param availableStatus trạng thái AVAILABLE để loại trừ
+     * @param orderId ID đơn hàng hiện tại
+     * @return danh sách các ghế không khả dụng bị giữ bởi đơn hàng khác
      */
     @Query("""
         SELECT s FROM Seat s
@@ -56,12 +75,30 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
     );
 
     /**
-     * Tìm các ghế đã bị hết hạn, dùng cho cronjob.
-     * */
+     * Phân trang tìm các ghế đã hết hạn giữ chỗ phục vụ cho tác vụ giải phóng định kỳ.
+     *
+     * @param seatStatus trạng thái ghế cần quét (ví dụ PENDING)
+     * @param now thời điểm hiện tại để kiểm tra hết hạn
+     * @param pageable thông tin phân trang
+     * @return trang kết quả chứa các hình chiếu ghế hết hạn ExpiredSeatProjection
+     */
     Page<ExpiredSeatProjection> findByStatusAndHoldExpiredAtBefore(SeatStatus seatStatus, LocalDateTime now, Pageable pageable);
 
+    /**
+     * Tìm toàn bộ danh sách ghế liên kết với một đơn hàng.
+     *
+     * @param order thực thể đơn hàng
+     * @return danh sách ghế thuộc đơn hàng
+     */
     List<Seat> findByOrder(Order order);
 
+    /**
+     * Cập nhật trạng thái cho toàn bộ ghế thuộc một đơn hàng cụ thể.
+     *
+     * @param status trạng thái mới cần cập nhật (ví dụ BOOKED)
+     * @param order thực thể đơn hàng sở hữu ghế
+     * @return số lượng ghế được cập nhật thành công
+     */
     @Modifying(clearAutomatically = true)
     @Query("""
         UPDATE Seat s
@@ -70,6 +107,13 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
     """)
     int updateSeatStatusByOrder(@Param("status") SeatStatus status, @Param("order") Order order);
 
+    /**
+     * Giải phóng toàn bộ ghế thuộc một đơn hàng về trạng thái chỉ định và xóa liên kết đơn hàng.
+     *
+     * @param status trạng thái giải phóng (ví dụ AVAILABLE)
+     * @param order thực thể đơn hàng cần nhả ghế
+     * @return số lượng ghế được giải phóng thành công
+     */
     @Modifying(clearAutomatically = true)
     @Query("""
         UPDATE Seat s

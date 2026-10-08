@@ -36,6 +36,13 @@ public class EventFacade {
     private final FileStorageService fileStorageService;
     private final FileStorageValidator fileStorageValidator;
 
+    /**
+     * Khởi tạo sơ đồ vị trí ghế ngồi cho sự kiện, bao gồm xóa các ghế cũ và lưu danh sách ghế mới.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @param request dữ liệu cấu hình sơ đồ ghế
+     * @return đối tượng SeatLayoutResponse chứa sơ đồ ghế đã được khởi tạo
+     */
     @Transactional
     public SeatLayoutResponse createLayout(
             UUID eventId,
@@ -55,6 +62,13 @@ public class EventFacade {
         return new SeatLayoutResponse(seatService.createAndSaveSeat(event, seatLayout));
     }
 
+    /**
+     * Cập nhật thông tin sự kiện mà không kèm tệp ảnh bìa mới.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @param updateData dữ liệu yêu cầu cập nhật sự kiện
+     * @return đối tượng EventItemResponse chứa thông tin sự kiện sau khi cập nhật
+     */
     @Transactional
     public EventItemResponse update(
             UUID eventId,
@@ -63,6 +77,15 @@ public class EventFacade {
         return update(eventId, updateData, null);
     }
 
+    /**
+     * Điều phối cập nhật toàn diện thông tin sự kiện, các hạng vé và xử lý tải lên ảnh bìa mới.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @param updateData dữ liệu yêu cầu cập nhật sự kiện
+     * @param image tệp ảnh bìa mới tải lên (tùy chọn)
+     * @return đối tượng EventItemResponse chứa thông tin sự kiện sau khi cập nhật
+     * @throws AppException nếu dữ liệu cập nhật không hợp lệ hoặc vi phạm ràng buộc trạng thái sự kiện
+     */
     @Transactional
     public EventItemResponse update(
             UUID eventId,

@@ -18,6 +18,16 @@ public class UserService {
     private final OrganizerRepository organizerRepository;
     private final AdminRepository adminRepository;
 
+    /**
+     * Tạo mới người dùng với mật khẩu được mã hóa và lưu vào cơ sở dữ liệu.
+     *
+     * @param name họ và tên người dùng
+     * @param email địa chỉ email người dùng
+     * @param password mật khẩu dạng văn bản gốc
+     * @param passwordEncoder bộ mã hóa mật khẩu
+     * @param role vai trò của người dùng
+     * @return thực thể User vừa tạo
+     */
     public User createUser(
             String name,
             String email,
@@ -35,6 +45,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    /**
+     * Tạo mới bản ghi khách hàng Customer liên kết với tài khoản người dùng.
+     *
+     * @param user thực thể người dùng tương ứng
+     * @return thực thể Customer vừa tạo
+     */
     public Customer createCustomer(
             User user
     ) {
@@ -45,6 +61,12 @@ public class UserService {
         return customerRepository.save(customer);
     }
 
+    /**
+     * Tạo mới bản ghi ban tổ chức Organizer liên kết với tài khoản người dùng.
+     *
+     * @param user thực thể người dùng tương ứng
+     * @return thực thể Organizer vừa tạo
+     */
     public Organizer createOrganizer(
             User user
     ) {
@@ -55,6 +77,12 @@ public class UserService {
         return  organizerRepository.save(organizer);
     }
 
+    /**
+     * Tạo mới bản ghi quản trị viên Admin liên kết với tài khoản người dùng.
+     *
+     * @param user thực thể người dùng tương ứng
+     * @return thực thể Admin vừa tạo
+     */
     public Admin createAdmin(
             User user
     ) {

@@ -15,11 +15,23 @@ public class PaymentStrategyFactory {
 
     private final Map<PaymentMethod, PaymentStrategy> strategies;
 
+    /**
+     * Khởi tạo factory và thu thập tất cả các bean cài đặt PaymentStrategy vào map.
+     *
+     * @param strategyList danh sách các chiến lược thanh toán được Spring tự động nạp
+     */
     public PaymentStrategyFactory(List<PaymentStrategy> strategyList) {
         this.strategies = strategyList.stream()
                 .collect(Collectors.toMap(PaymentStrategy::getPaymentMethod, Function.identity()));
     }
 
+    /**
+     * Lấy chiến lược xử lý thanh toán tương ứng với phương thức được chọn.
+     *
+     * @param method phương thức thanh toán
+     * @return đối tượng PaymentStrategy tương ứng
+     * @throws AppException nếu phương thức thanh toán chưa được hệ thống hỗ trợ
+     */
     public PaymentStrategy getStrategy(PaymentMethod method) {
         PaymentStrategy strategy = strategies.get(method);
         if (strategy == null) {

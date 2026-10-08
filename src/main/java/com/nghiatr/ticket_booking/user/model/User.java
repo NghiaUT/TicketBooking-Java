@@ -47,10 +47,21 @@ public class User {
     @Column(name = "created_at")
     private Instant createdAt;
 
+    /**
+     * Kiểm tra người dùng có vai trò cụ thể hay không.
+     *
+     * @param role vai trò cần đối chiếu
+     * @return true nếu người dùng có vai trò tương ứng, ngược lại false
+     */
     public boolean hasRole(UserRole role) {
         return this.role == role;
     }
 
+    /**
+     * Kiểm tra xem người dùng có phải là quản trị viên hệ thống (ADMIN) hay không.
+     *
+     * @return true nếu người dùng mang vai trò ADMIN, ngược lại false
+     */
     public boolean isAdmin() {
         return this.role == UserRole.ADMIN;
     }

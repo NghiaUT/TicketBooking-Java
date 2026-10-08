@@ -20,6 +20,13 @@ public class SeatWebSocketPublisher {
     private final SimpMessagingTemplate messagingTemplate;
 
     // Phát sự kiện khóa ghế (khi đặt ghế)
+    /**
+     * Phát sự kiện khóa ghế tạm thời (PENDING) khi khách hàng giữ chỗ qua WebSocket.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @param seatIds danh sách ID các ghế bị khóa
+     * @param expiredAt thời điểm hết hạn giữ chỗ
+     */
     public void publishSeatLocked(UUID eventId, List<UUID> seatIds, LocalDateTime expiredAt) {
         SeatStatusEvent event = SeatStatusEvent.builder()
                 .eventId(eventId)
@@ -34,6 +41,12 @@ public class SeatWebSocketPublisher {
     }
 
     // Phát sự kiện nhả khóa ghế.
+    /**
+     * Phát sự kiện mở khóa ghế trở lại trạng thái AVAILABLE qua WebSocket.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @param seatIds danh sách ID các ghế được mở khóa
+     */
     public void publishSeatReleased(UUID eventId, List<UUID> seatIds) {
         SeatStatusEvent event = SeatStatusEvent.builder()
                 .eventId(eventId)
@@ -47,6 +60,12 @@ public class SeatWebSocketPublisher {
     }
 
     // Phát sự kiện ghế đã được đặt:
+    /**
+     * Phát sự kiện ghế đã được đặt và thanh toán thành công (BOOKED) qua WebSocket.
+     *
+     * @param eventId định danh duy nhất của sự kiện
+     * @param seatIds danh sách ID các ghế đã được đặt
+     */
     public void publishSeatBooked(UUID eventId, List<UUID> seatIds) {
         SeatStatusEvent event = SeatStatusEvent.builder()
                 .eventId(eventId)
@@ -59,6 +78,12 @@ public class SeatWebSocketPublisher {
         broadcastToEventTopic(eventId, event);
     }
 
+    /**
+     * Gửi sự kiện trạng thái ghế đến topic WebSocket tương ứng của sự kiện.
+     *
+     * @param eventId định danh sự kiện
+     * @param event đối tượng sự kiện trạng thái ghế
+     */
     private void broadcastToEventTopic(UUID eventId, SeatStatusEvent event) {
         String destination = "/topic/events/" + eventId + "/seats";
         log.info("[WebSocket] Broadcasting {} for {} seats to destination: {}",

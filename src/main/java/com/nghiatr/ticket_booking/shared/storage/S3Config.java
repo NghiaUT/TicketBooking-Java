@@ -28,6 +28,11 @@ public class S3Config {
     @Value("${aws.s3.endpoint:}")
     private String endpoint;
 
+    /**
+     * Khởi tạo Bean S3Client kết nối tới dịch vụ lưu trữ AWS S3 hoặc tương thích (LocalStack/MinIO).
+     *
+     * @return đối tượng S3Client đã được cấu hình vùng và chứng thực
+     */
     @Bean
     public S3Client s3Client() {
         S3ClientBuilder builder = S3Client.builder()

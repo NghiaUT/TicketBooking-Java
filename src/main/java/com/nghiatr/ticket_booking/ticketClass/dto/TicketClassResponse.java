@@ -15,6 +15,12 @@ public record TicketClassResponse(
         String color,
         String description
 ) {
+    /**
+     * Chuyển đổi từ thực thể TicketClass sang đối tượng TicketClassResponse.
+     *
+     * @param ticketClass thực thể hạng vé
+     * @return đối tượng TicketClassResponse
+     */
     public static TicketClassResponse toResponse(TicketClass ticketClass) {
         return new TicketClassResponse(
                 ticketClass.getTicketClassId(),

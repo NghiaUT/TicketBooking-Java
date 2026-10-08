@@ -19,6 +19,13 @@ public record SeatResponse(
         UUID TicketClassId,
         TicketClassResponse ticketClass
 ) {
+    /**
+     * Tạo đối tượng SeatResponse từ thực thể Seat và thực thể Order liên quan.
+     *
+     * @param seat thực thể ghế
+     * @param order thực thể đơn hàng sở hữu hoặc giữ ghế
+     * @return đối tượng SeatResponse hoàn chỉnh
+     */
     public static SeatResponse from(Seat seat, Order order) {
         return new SeatResponse(
                 seat.getSeatId(),

@@ -6,6 +6,11 @@ public record DeletedSeatRequest(
         int row,
         int col
 ) {
+    /**
+     * Chuyển đổi dữ liệu DeletedSeatRequest sang thực thể DeletedSeat.
+     *
+     * @return đối tượng DeletedSeat
+     */
     public DeletedSeat toDeletedSeat() {
         return DeletedSeat.builder()
                 .col(col)

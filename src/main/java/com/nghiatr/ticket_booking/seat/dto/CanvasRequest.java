@@ -8,6 +8,11 @@ public record CanvasRequest(
         int width,
         int height
 ) {
+    /**
+     * Chuyển đổi dữ liệu CanvasRequest sang đối tượng thực thể Canvas.
+     *
+     * @return đối tượng Canvas
+     */
     public Canvas toCanvas() {
         return Canvas.builder()
                 .x(x)

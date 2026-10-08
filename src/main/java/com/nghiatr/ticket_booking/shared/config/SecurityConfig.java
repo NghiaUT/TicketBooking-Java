@@ -25,6 +25,13 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
+    /**
+     * Cấu hình chuỗi bộ lọc bảo mật SecurityFilterChain của ứng dụng (CSRF, phân quyền URL, session stateless).
+     *
+     * @param http đối tượng HttpSecurity để thiết lập cấu hình
+     * @return đối tượng SecurityFilterChain hoàn chỉnh
+     * @throws Exception nếu xảy ra lỗi trong quá trình cấu hình
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -53,11 +60,23 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Cung cấp bộ mã hóa mật khẩu sử dụng giải thuật BCrypt với độ mạnh (strength) là 10.
+     *
+     * @return đối tượng PasswordEncoder
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
 
+    /**
+     * Cung cấp Bean AuthenticationManager từ cấu hình bảo mật của Spring Security.
+     *
+     * @param config cấu hình xác thực AuthenticationConfiguration
+     * @return đối tượng AuthenticationManager
+     * @throws Exception nếu không thể khởi tạo AuthenticationManager
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();

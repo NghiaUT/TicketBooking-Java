@@ -19,7 +19,11 @@ public class PaymentWebhookController {
     private final PaymentFacade paymentFacade;
 
     /**
-     * IPN Webhook Server-to-Server qua phương thức GET (Phổ biến như VNPay IPN).
+     * Tiếp nhận và điều phối xử lý IPN Webhook gửi qua HTTP GET từ cổng thanh toán.
+     *
+     * @param method phương thức thanh toán tương ứng
+     * @param allParams tập các tham số query params nhận từ webhook
+     * @return phản hồi HTTP chứa thông tin phản hồi xác nhận cho cổng thanh toán
      */
     @GetMapping("/{method}/ipn")
     public ResponseEntity<Map<String, String>> handleGetIpn(
@@ -38,7 +42,11 @@ public class PaymentWebhookController {
     }
 
     /**
-     * IPN Webhook Server-to-Server qua phương thức POST (Phổ biến như Momo, Stripe, ZaloPay).
+     * Tiếp nhận và điều phối xử lý IPN Webhook gửi qua HTTP POST từ cổng thanh toán.
+     *
+     * @param method phương thức thanh toán tương ứng
+     * @param bodyParams dữ liệu thân yêu cầu (body) nhận từ webhook
+     * @return phản hồi HTTP chứa thông tin phản hồi xác nhận cho cổng thanh toán
      */
     @PostMapping("/{method}/ipn")
     public ResponseEntity<Map<String, String>> handlePostIpn(

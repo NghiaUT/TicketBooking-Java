@@ -55,6 +55,13 @@ public class OrderService {
     }
 
     // 1. Find all order by userId;
+    /**
+     * Lấy danh sách toàn bộ đơn hàng của khách hàng theo mã định danh khách hàng.
+     *
+     * @param customerId định danh duy nhất của khách hàng
+     * @return đối tượng OrderResponse chứa danh sách đơn hàng
+     * @throws AppException nếu không tìm thấy thông tin khách hàng
+     */
     public OrderResponse findAll(UUID customerId) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new AppException(OrderErrorCode.ORDER_NOT_FOUND));
@@ -65,6 +72,13 @@ public class OrderService {
     }
 
     // 2. Get Detail of an order;
+    /**
+     * Lấy thông tin chi tiết của một đơn hàng theo mã đơn hàng.
+     *
+     * @param orderId định danh duy nhất của đơn hàng
+     * @return đối tượng OrderItemResponse chứa thông tin đơn hàng
+     * @throws AppException nếu đơn hàng không tồn tại
+     */
     public OrderItemResponse findOne(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new AppException(OrderErrorCode.ORDER_NOT_FOUND));
@@ -73,9 +87,16 @@ public class OrderService {
     }
 
     // 3. Create Order + Holding seat (PENDING) -> Create Payment.
+    /**
+     * Tạo mới đơn hàng và thực hiện giữ chỗ (lock ghế) nguyên tử trong khoảng thời gian quy định.
+     *
+     * @param customerId định danh duy nhất của khách hàng
+     * @param seatIds danh sách định danh của các ghế muốn đặt
+     * @return đối tượng CreateOrderResponse chứa thông tin đơn hàng và ghế đã giữ chỗ thành công
+     * @throws AppException nếu vượt quá giới hạn ghế (tối đa 5 ghế), ghế không tồn tại hoặc ghế đã có người giữ
+     */
     @Transactional
     public CreateOrderResponse create(UUID customerId, List<UUID> seatIds) {
-
         if(seatIds == null || seatIds.isEmpty() || seatIds.size() > 5) {
             throw new AppException(OrderErrorCode.SEAT_LIMIT_EXCEEDED);
         }

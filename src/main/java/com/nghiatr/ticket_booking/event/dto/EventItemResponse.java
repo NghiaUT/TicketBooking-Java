@@ -25,6 +25,12 @@ public record EventItemResponse(
         SeatLayout seatLayoutMap,
         String rejectReason
 ) {
+    /**
+     * Chuyển đổi từ thực thể Event sang đối tượng EventItemResponse.
+     *
+     * @param event thực thể sự kiện cần chuyển đổi
+     * @return đối tượng EventItemResponse chứa dữ liệu sự kiện
+     */
     public static EventItemResponse from(Event event) {
         return new EventItemResponse(
                 event.getEventId(),

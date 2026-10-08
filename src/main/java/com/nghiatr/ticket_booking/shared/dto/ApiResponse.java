@@ -19,8 +19,23 @@ public class ApiResponse<T> {
         this.timestamp = LocalDateTime.now();
     }
 
+    /**
+     * Tạo đối tượng ApiResponse thành công với dữ liệu trả về.
+     *
+     * @param data dữ liệu phản hồi
+     * @param <T> kiểu dữ liệu của nội dung phản hồi
+     * @return đối tượng ApiResponse biểu thị thành công
+     */
     public static <T> ApiResponse<T> ok(T data) { return new ApiResponse<T>(true, data, null); }
 
+    /**
+     * Tạo đối tượng ApiResponse thành công với dữ liệu trả về và thông điệp thông báo.
+     *
+     * @param data dữ liệu phản hồi
+     * @param message thông điệp mô tả kết quả
+     * @param <T> kiểu dữ liệu của nội dung phản hồi
+     * @return đối tượng ApiResponse biểu thị thành công kèm thông điệp
+     */
     public static <T> ApiResponse<T> ok(T data, String message) { return new ApiResponse<T>(true, data, message); }
 
     public boolean isSuccess()          { return success; }

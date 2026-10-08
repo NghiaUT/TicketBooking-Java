@@ -23,10 +23,22 @@ public class SeatService {
     private final SeatRepository seatRepository;
     private final TicketClassService ticketClassService;
 
+    /**
+     * Xóa toàn bộ các ghế thuộc về sự kiện chỉ định.
+     *
+     * @param event thực thể sự kiện cần xóa ghế
+     */
     public void deleteAllByEvent(Event event) {
         seatRepository.deleteAllByEventId(event);
     }
 
+    /**
+     * Khởi tạo và lưu hàng loạt ghế vào cơ sở dữ liệu dựa trên cấu hình sơ đồ ghế.
+     *
+     * @param event thực thể sự kiện chứa các ghế
+     * @param seatLayout cấu hình sơ đồ các khối ghế
+     * @return số lượng ghế được tạo và lưu thành công
+     */
     @Transactional
     public int createAndSaveSeat(
             Event event,

@@ -17,6 +17,12 @@ public record OrderItemResponse(
         String customerName,
         String customerPhone
 ) {
+    /**
+     * Chuyển đổi từ thực thể Order sang đối tượng OrderItemResponse.
+     *
+     * @param order thực thể đơn hàng cần chuyển đổi
+     * @return đối tượng OrderItemResponse chứa thông tin chi tiết đơn hàng
+     */
     public static OrderItemResponse from(Order order) {
         return new OrderItemResponse(
                 order.getOrderId(),

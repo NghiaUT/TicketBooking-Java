@@ -18,6 +18,15 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Component
 public class EventActionValidator {
+    /**
+     * Kiểm tra tính hợp lệ của toàn bộ thao tác cập nhật sự kiện và sơ đồ/hạng vé liên quan.
+     *
+     * @param currentEvent thực thể sự kiện hiện tại trong hệ thống
+     * @param ticketClasses danh sách các hạng vé hiện có của sự kiện
+     * @param updateData dữ liệu yêu cầu cập nhật sự kiện
+     * @param actionType loại hành động thực hiện trên sự kiện
+     * @throws AppException nếu vi phạm các ràng buộc nghiệp vụ về trạng thái, địa điểm, quota hoặc layout
+     */
     public void validate(
             Event currentEvent,
             List<TicketClass> ticketClasses,

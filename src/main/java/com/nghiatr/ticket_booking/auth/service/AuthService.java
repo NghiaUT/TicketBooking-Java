@@ -34,6 +34,13 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
 
+    /**
+     * Đăng ký tài khoản người dùng mới vào hệ thống theo vai trò được chỉ định.
+     *
+     * @param request dữ liệu đăng ký bao gồm họ tên, email, mật khẩu và vai trò
+     * @return đối tượng AuthResponse chứa access token và refresh token
+     * @throws AppException nếu email đã tồn tại hoặc người dùng cố tình đăng ký vai trò ADMIN
+     */
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -64,8 +71,13 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
-
-
+    /**
+     * Xác thực thông tin đăng nhập và tạo mới phiên đăng nhập cho người dùng.
+     *
+     * @param request dữ liệu yêu cầu đăng nhập chứa email và mật khẩu
+     * @return đối tượng AuthResponse chứa token truy cập và refresh token mới
+     * @throws AppException nếu sai thông tin xác thực hoặc không tìm thấy người dùng
+     */
     @Transactional
     public AuthResponse login(LoginRequest request) {
         try {
@@ -85,6 +97,13 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
+    /**
+     * Cấp access token mới dựa trên refresh token hợp lệ còn hạn.
+     *
+     * @param refreshTokenValue chuỗi giá trị refresh token
+     * @return đối tượng AuthResponse chứa access token mới và refresh token hiện tại
+     * @throws AppException nếu refresh token không tồn tại, đã bị thu hồi, hết hạn hoặc không tìm thấy người dùng
+     */
     @Transactional
     public AuthResponse refreshToken(String refreshTokenValue) {
         RefreshToken storedToken = refreshTokenRepository.findByToken(refreshTokenValue)
@@ -105,11 +124,22 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * Đăng xuất người dùng bằng cách thu hồi toàn bộ refresh token còn hiệu lực.
+     *
+     * @param userId định danh duy nhất của người dùng
+     */
     @Transactional
     public void logout(UUID userId) {
         refreshTokenRepository.revokeAllByUserId(userId);
     }
 
+    /**
+     * Tạo cặp access token và refresh token cho người dùng, đồng thời lưu refresh token vào cơ sở dữ liệu.
+     *
+     * @param user thực thể người dùng cần tạo phiên
+     * @return đối tượng AuthResponse chứa token xác thực và thời gian hết hạn
+     */
     private AuthResponse buildAuthResponse(User user) {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshTokenValue = jwtService.generateRefreshToken(user);
