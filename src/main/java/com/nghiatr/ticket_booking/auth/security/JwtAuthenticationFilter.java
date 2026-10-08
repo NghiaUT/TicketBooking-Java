@@ -14,6 +14,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -30,7 +31,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/api/v1/venues",
             "/api/v1/events",
             "/actuator/**",
-            "/ws/**"
+            "/ws/**",
+            "/api/v1/payments/*/ipn",
+            "/api/v1/payments/*/return",
+            "/api/v1/payments/mock/**"
     };
 
     private static final String AUTH_HEADER = "Authorization";
@@ -38,13 +42,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JWTService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     @Override
     protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
         String path = request.getServletPath();
         for (String url : UNSECURED_URLS) {
-            if(path.equals(url)) {
-                // Để tránh lỗi bỏ qua tất cả các API /events/my-event...
+            if (pathMatcher.match(url, path)) {
                 return true; // Bỏ qua JWT Filter cho API này.
             }
         }

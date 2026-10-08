@@ -46,6 +46,19 @@ public class SeatWebSocketPublisher {
         broadcastToEventTopic(eventId, event);
     }
 
+    // Phát sự kiện ghế đã được đặt:
+    public void publishSeatBooked(UUID eventId, List<UUID> seatIds) {
+        SeatStatusEvent event = SeatStatusEvent.builder()
+                .eventId(eventId)
+                .seatIds(seatIds)
+                .status(SeatStatus.BOOKED)
+                .action(SeatStatusEvent.ActionType.BOOKED)
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        broadcastToEventTopic(eventId, event);
+    }
+
     private void broadcastToEventTopic(UUID eventId, SeatStatusEvent event) {
         String destination = "/topic/events/" + eventId + "/seats";
         log.info("[WebSocket] Broadcasting {} for {} seats to destination: {}",

@@ -58,6 +58,23 @@ public interface SeatRepository extends JpaRepository<Seat, UUID> {
     /**
      * Tìm các ghế đã bị hết hạn, dùng cho cronjob.
      * */
-
     Page<ExpiredSeatProjection> findByStatusAndHoldExpiredAtBefore(SeatStatus seatStatus, LocalDateTime now, Pageable pageable);
+
+    List<Seat> findByOrder(Order order);
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+        UPDATE Seat s
+        SET s.status = :status
+        WHERE s.order = :order
+    """)
+    int updateSeatStatusByOrder(@Param("status") SeatStatus status, @Param("order") Order order);
+
+    @Modifying(clearAutomatically = true)
+    @Query("""
+        UPDATE Seat s
+        SET s.status = :status, s.order = null, s.holdExpiredAt = null
+        WHERE s.order = :order
+    """)
+    int releaseSeatsByOrder(@Param("status") SeatStatus status, @Param("order") Order order);
 }

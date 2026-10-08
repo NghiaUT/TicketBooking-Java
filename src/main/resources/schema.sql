@@ -181,6 +181,10 @@ CREATE TABLE payments (
                           amount            DOUBLE PRECISION,
                           method            VARCHAR,
                           transaction_code  VARCHAR,
+                          method            VARCHAR,
+                          idempotency_key   VARCHAR,
+                          created_at        TIMESTAMP,
+                          updated_at        TIMESTAMP,
                           status            payment_status DEFAULT 'PENDING'
 );
 
