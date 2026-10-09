@@ -19,7 +19,7 @@ spring:
       max-lifetime: 1800000
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
       # update nếu muốn dev nhanh local, validate để kiểm tra schema trước khi chạy ứng dụng
     show-sql: true
   servlet:
