@@ -34,7 +34,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/ws/**",
             "/api/v1/payments/*/ipn",
             "/api/v1/payments/*/return",
-            "/api/v1/payments/mock/**"
+            "/api/v1/payments/mock/**",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html"
     };
 
     private static final String AUTH_HEADER = "Authorization";
