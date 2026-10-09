@@ -3,6 +3,9 @@ package com.nghiatr.ticket_booking.payment.controller;
 import com.nghiatr.ticket_booking.orchestration.PaymentFacade;
 import com.nghiatr.ticket_booking.payment.dto.PaymentCallbackResult;
 import com.nghiatr.ticket_booking.payment.entity.PaymentMethod;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Tag(name = "Payment Webhooks", description = "Tiếp nhận IPN callback từ các cổng thanh toán (Server-to-Server)")
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/payments")
@@ -25,10 +29,11 @@ public class PaymentWebhookController {
      * @param allParams tập các tham số query params nhận từ webhook
      * @return phản hồi HTTP chứa thông tin phản hồi xác nhận cho cổng thanh toán
      */
+    @Operation(summary = "Tiếp nhận IPN Webhook qua GET", description = "Tiếp nhận và điều phối xử lý IPN Webhook gửi qua HTTP GET từ cổng thanh toán")
     @GetMapping("/{method}/ipn")
     public ResponseEntity<Map<String, String>> handleGetIpn(
-            @PathVariable("method") PaymentMethod method,
-            @RequestParam Map<String, String> allParams
+            @Parameter(description = "Phương thức thanh toán", required = true) @PathVariable("method") PaymentMethod method,
+            @Parameter(description = "Tham số query từ cổng thanh toán") @RequestParam Map<String, String> allParams
     ) {
         log.info("[Webhook IPN GET] Nhận callback từ cổng {}: {}", method, allParams);
         PaymentCallbackResult result = paymentFacade.processIpnPayment(method, allParams);
@@ -48,9 +53,10 @@ public class PaymentWebhookController {
      * @param bodyParams dữ liệu thân yêu cầu (body) nhận từ webhook
      * @return phản hồi HTTP chứa thông tin phản hồi xác nhận cho cổng thanh toán
      */
+    @Operation(summary = "Tiếp nhận IPN Webhook qua POST", description = "Tiếp nhận và điều phối xử lý IPN Webhook gửi qua HTTP POST từ cổng thanh toán")
     @PostMapping("/{method}/ipn")
     public ResponseEntity<Map<String, String>> handlePostIpn(
-            @PathVariable("method") PaymentMethod method,
+            @Parameter(description = "Phương thức thanh toán", required = true) @PathVariable("method") PaymentMethod method,
             @RequestBody Map<String, String> bodyParams
     ) {
         log.info("[Webhook IPN POST] Nhận callback từ cổng {}: {}", method, bodyParams);

@@ -7,6 +7,10 @@ import com.nghiatr.ticket_booking.payment.dto.PaymentReturnResult;
 import com.nghiatr.ticket_booking.payment.entity.PaymentMethod;
 import com.nghiatr.ticket_booking.payment.service.PaymentService;
 import com.nghiatr.ticket_booking.shared.dto.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Tag(name = "Payments", description = "Quản lý khởi tạo giao dịch thanh toán và kết quả trả về")
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
@@ -30,10 +35,11 @@ public class PaymentController {
      * @param servletRequest yêu cầu HTTP từ phía client để trích xuất địa chỉ IP
      * @return phản hồi HTTP chứa ApiResponse với PaymentResponse gồm thông tin thanh toán và URL
      */
+    @Operation(summary = "Khởi tạo thanh toán", description = "Khởi tạo phiên thanh toán cho đơn hàng và tạo URL thanh toán chuyển hướng", security = @SecurityRequirement(name = "BearerAuth"))
     @PostMapping
     public ResponseEntity<ApiResponse<PaymentResponse>> createPayment(
             @Valid @RequestBody CreatePaymentRequest request,
-            HttpServletRequest servletRequest
+            @Parameter(hidden = true) HttpServletRequest servletRequest
     ) {
         String clientIp = servletRequest.getRemoteAddr();
         PaymentResponse response = paymentService.initPayment(request, clientIp);
@@ -47,10 +53,11 @@ public class PaymentController {
      * @param allParams tập các tham số query do cổng thanh toán gửi kèm trên URL
      * @return phản hồi HTTP chứa ApiResponse với PaymentReturnResult
      */
+    @Operation(summary = "Xử lý kết quả trả về từ trình duyệt", description = "Phân tích và trả về kết quả giao dịch khi cổng thanh toán redirect về trình duyệt")
     @GetMapping("/{method}/return")
     public ResponseEntity<ApiResponse<PaymentReturnResult>> handleBrowserReturn(
-            @PathVariable("method") PaymentMethod method,
-            @RequestParam Map<String, String> allParams
+            @Parameter(description = "Phương thức thanh toán", required = true) @PathVariable("method") PaymentMethod method,
+            @Parameter(description = "Tham số truy vấn từ cổng thanh toán") @RequestParam Map<String, String> allParams
     ) {
         PaymentReturnResult result = paymentFacade.processReturnUrl(method, allParams);
         return ResponseEntity.ok(ApiResponse.ok(result, "Nhận kết quả giao dịch từ cổng thanh toán"));
